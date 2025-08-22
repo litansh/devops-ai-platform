@@ -35,8 +35,13 @@ flowchart TD
     end
 
     subgraph "Infrastructure Layer"
-        Terraform --> [VPC, EC2, EKS, RDS, S3]
-        ArgoCD --> HelmCharts --> EKS
+        Terraform --> VPC
+        Terraform --> EC2
+        Terraform --> EKS
+        Terraform --> RDS
+        Terraform --> S3
+        ArgoCD --> HelmCharts
+        HelmCharts --> EKS
         Prometheus --> MetricsDB
         AlertManager --> NotificationHub
     end
