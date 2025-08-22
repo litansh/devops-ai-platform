@@ -404,7 +404,7 @@ npm start
 * **Alertmanager** – routes alerts to bot via webhook
 * **k6** – HTTP synthetic tests run on schedule
 
-> Dashboard: `burst-scaling.json`
+> Dashboard: `burst-scaling.json`  
 > Custom panels: CPU/pod, replicas, prediction, burst windows, bottlenecks
 
 ---
@@ -516,11 +516,11 @@ devops-ai-platform/
 ## 🔁 Full Lifecycle Example: Traffic Burst
 
 1. **BurstPredictor** detects weekly spike pattern → opens PR
-2. Bot sends message:
+2. Bot sends message:  
    “📈 Traffic spike expected Mon 10–11. PR created → `/approve burst-pr-55`”
-3. You approve.
+3. You approve.  
    HPA minReplicas increased from 2 → 4
-4. Load hits. Cluster autoscaler adds node.
+4. Load hits. Cluster autoscaler adds node.  
 5. Grafana panel shows burst → scale-out → recovery
 6. Alertmanager confirms "response time OK". ✅
 

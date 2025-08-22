@@ -4,7 +4,7 @@ datasources:
   - name: Prometheus
     type: prometheus
     access: proxy
-    url: http://monitoring-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090
+    url: http://prometheus:9090
     isDefault: true
     editable: true
     jsonData:
@@ -16,7 +16,7 @@ datasources:
   - name: Loki
     type: loki
     access: proxy
-    url: http://loki.monitoring.svc.cluster.local:3100
+    url: http://loki:3100
     editable: true
     jsonData:
       maxLines: 1000
@@ -25,7 +25,7 @@ datasources:
   - name: Elasticsearch
     type: elasticsearch
     access: proxy
-    url: http://elasticsearch.monitoring.svc.cluster.local:9200
+    url: http://elasticsearch:9200
     editable: true
     jsonData:
       timeField: "@timestamp"

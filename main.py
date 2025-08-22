@@ -11,17 +11,22 @@ import logging
 import os
 import signal
 import sys
+import time
 from contextlib import asynccontextmanager
 from typing import Dict, Any
 
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from dotenv import load_dotenv
+import secrets
 
 from bots.gateway import BotGateway
 from agents.registry import AgentRegistry
+from agents.base import AgentStatus
 from core.config import Settings
 from core.database import init_database
 from core.logging import setup_logging
@@ -37,6 +42,26 @@ logger = logging.getLogger(__name__)
 
 # Global application state
 app_state: Dict[str, Any] = {}
+
+# Authentication setup
+security = HTTPBasic()
+
+# Default admin credentials (should be overridden by environment variables)
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin")
+
+def get_current_user(credentials: HTTPBasicCredentials = Depends(security)):
+    """Verify admin credentials."""
+    is_correct_username = secrets.compare_digest(credentials.username, ADMIN_USERNAME)
+    is_correct_password = secrets.compare_digest(credentials.password, ADMIN_PASSWORD)
+    
+    if not (is_correct_username and is_correct_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return credentials.username
 
 
 @asynccontextmanager
@@ -193,7 +218,7 @@ async def list_agents():
 
 
 @app.post("/agents/{agent_name}/execute")
-async def execute_agent(agent_name: str, context: Dict[str, Any] = None):
+async def execute_agent(agent_name: str, context: Dict[str, Any] = None, current_user: str = Depends(get_current_user)):
     """Execute a specific agent."""
     if "agent_registry" not in app_state:
         raise HTTPException(status_code=503, detail="Agent registry not available")
@@ -206,126 +231,239 @@ async def execute_agent(agent_name: str, context: Dict[str, Any] = None):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.post("/agents/{agent_name}/restart")
+async def restart_agent(agent_name: str, current_user: str = Depends(get_current_user)):
+    """Restart a specific agent."""
+    if "agent_registry" not in app_state:
+        raise HTTPException(status_code=503, detail="Agent registry not available")
+    
+    try:
+        agent_registry = app_state["agent_registry"]
+        
+        # Check if agent exists
+        if agent_name not in agent_registry.agents:
+            raise HTTPException(status_code=404, detail=f"Agent '{agent_name}' not found")
+        
+        agent = agent_registry.agents[agent_name]
+        
+        # Disable the agent temporarily and set status to restarting
+        was_enabled = agent.enabled
+        agent.disable()
+        # Add a temporary restarting flag to the agent
+        agent._restarting = True
+        
+        # Reinitialize the agent
+        new_agent = agent.__class__(agent_registry.settings)
+        agent_registry.register_agent(new_agent)
+        
+        # Re-enable the agent if it was enabled before
+        if was_enabled:
+            new_agent.enable()
+            new_agent.status = AgentStatus.IDLE  # Set back to idle after restart
+            new_agent._restarting = False  # Clear restarting flag
+        
+        logger.info(f"Agent '{agent_name}' restarted successfully")
+        return {
+            "agent": agent_name, 
+            "status": "restarted",
+            "message": f"Agent '{agent_name}' has been restarted and is now running"
+        }
+    except Exception as e:
+        logger.error(f"Agent restart failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/agents/{agent_name}/toggle")
+async def toggle_agent(agent_name: str, current_user: str = Depends(get_current_user)):
+    """Enable or disable a specific agent."""
+    if "agent_registry" not in app_state:
+        raise HTTPException(status_code=503, detail="Agent registry not available")
+    
+    try:
+        agent_registry = app_state["agent_registry"]
+        
+        # Check if agent exists
+        if agent_name not in agent_registry.agents:
+            raise HTTPException(status_code=404, detail=f"Agent '{agent_name}' not found")
+        
+        agent = agent_registry.agents[agent_name]
+        
+        # Toggle the agent state
+        if agent.enabled:
+            agent.disable()
+            status = "disabled"
+            message = f"Agent '{agent_name}' has been disabled"
+        else:
+            agent.enable()
+            status = "enabled"
+            message = f"Agent '{agent_name}' has been enabled and is now running"
+        
+        logger.info(f"Agent '{agent_name}' {status}")
+        return {
+            "agent": agent_name,
+            "enabled": agent.enabled,
+            "status": status,
+            "message": message
+        }
+    except Exception as e:
+        logger.error(f"Agent toggle failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/agents/{agent_name}/test-error")
+async def test_agent_error(agent_name: str, current_user: str = Depends(get_current_user)):
+    """Test endpoint to set an agent to error state for demonstration."""
+    if "agent_registry" not in app_state:
+        raise HTTPException(status_code=503, detail="Agent registry not available")
+    
+    try:
+        agent_registry = app_state["agent_registry"]
+        
+        # Check if agent exists
+        if agent_name not in agent_registry.agents:
+            raise HTTPException(status_code=404, detail=f"Agent '{agent_name}' not found")
+        
+        agent = agent_registry.agents[agent_name]
+        
+        # Set agent to error state
+        agent.status = AgentStatus.ERROR
+        agent.error_count += 1
+        
+        logger.info(f"Agent '{agent_name}' set to error state for testing")
+        return {
+            "agent": agent_name,
+            "status": "error",
+            "message": f"Agent '{agent_name}' has been set to error state for testing"
+        }
+    except Exception as e:
+        logger.error(f"Failed to set agent to error state: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/agents/{agent_name}")
+async def delete_agent(agent_name: str, current_user: str = Depends(get_current_user)):
+    """Delete a specific agent."""
+    if "agent_registry" not in app_state:
+        raise HTTPException(status_code=503, detail="Agent registry not available")
+    
+    try:
+        agent_registry = app_state["agent_registry"]
+        
+        # Check if agent exists
+        if agent_name not in agent_registry.agents:
+            raise HTTPException(status_code=404, detail=f"Agent '{agent_name}' not found")
+        
+        agent = agent_registry.agents[agent_name]
+        
+        # Disable the agent
+        agent.disable()
+        
+        # Remove from registry
+        agent_registry.unregister_agent(agent_name)
+        
+        logger.info(f"Agent '{agent_name}' deleted successfully")
+        return {
+            "agent": agent_name,
+            "status": "deleted",
+            "message": f"Agent '{agent_name}' has been deleted"
+        }
+    except Exception as e:
+        logger.error(f"Agent deletion failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/metrics")
 async def get_metrics():
-    """Get platform metrics."""
-    # This would integrate with Prometheus metrics
-    return {
-        "total_agents": len(app_state.get("agent_registry", {}).agents) if "agent_registry" in app_state else 0,
-        "active_tasks": app_state.get("scheduler", {}).active_tasks if "scheduler" in app_state else 0,
-        "bot_connections": app_state.get("bot_gateway", {}).connection_count if "bot_gateway" in app_state else 0
-    }
+    """Get platform metrics in Prometheus format."""
+    try:
+        # Get agent registry for real metrics
+        agent_registry = app_state.get("agent_registry")
+        if not agent_registry:
+            agent_registry = AgentRegistry(Settings())
+        
+        # Generate Prometheus metrics
+        metrics_lines = []
+        
+        # Agent metrics
+        total_agents = len(agent_registry.agents)
+        active_agents = sum(1 for agent in agent_registry.agents.values() if agent.enabled)
+        
+        metrics_lines.extend([
+            "# HELP devops_platform_agents_total Total number of agents",
+            "# TYPE devops_platform_agents_total gauge",
+            f"devops_platform_agents_total {total_agents}",
+            "# HELP devops_platform_active_agents Total number of active agents", 
+            "# TYPE devops_platform_active_agents gauge",
+            f"devops_platform_active_agents {active_agents}",
+        ])
+        
+        # Individual agent metrics
+        for agent in agent_registry.agents.values():
+            agent_name = agent.name.replace('_', '_')
+            health = getattr(agent, 'health', {})
+            
+            metrics_lines.extend([
+                f"# HELP agent_executions_total Total executions for {agent_name}",
+                f"# TYPE agent_executions_total counter",
+                f"agent_executions_total{{agent=\"{agent_name}\"}} {health.get('execution_count', 0)}",
+                f"# HELP agent_success_rate Success rate for {agent_name}",
+                f"# TYPE agent_success_rate gauge",
+                f"agent_success_rate{{agent=\"{agent_name}\"}} {health.get('success_rate', 0.0)}",
+                f"# HELP agent_status Status of {agent_name} (1=enabled, 0=disabled)",
+                f"# TYPE agent_status gauge",
+                f"agent_status{{agent=\"{agent_name}\",status=\"{health.get('status', 'idle')}\"}} {1 if agent.enabled else 0}",
+            ])
+        
+        # System metrics
+        metrics_lines.extend([
+            "# HELP devops_platform_uptime_seconds Platform uptime in seconds",
+            "# TYPE devops_platform_uptime_seconds gauge",
+            f"devops_platform_uptime_seconds {time.time() - app_state.get('start_time', time.time())}",
+        ])
+        
+        return Response(
+            content="\n".join(metrics_lines),
+            media_type="text/plain; version=0.0.4; charset=utf-8"
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to get metrics: {e}")
+        # Fallback to basic metrics
+        return Response(
+            content=f"""# HELP devops_platform_agents_total Total number of agents
+# TYPE devops_platform_agents_total gauge
+devops_platform_agents_total {len(app_state.get("agent_registry", {}).agents) if "agent_registry" in app_state else 0}
+# HELP devops_platform_active_tasks Total number of active tasks
+# TYPE devops_platform_active_tasks gauge
+devops_platform_active_tasks {app_state.get("scheduler", {}).active_tasks if "scheduler" in app_state else 0}
+# HELP devops_platform_bot_connections Total number of bot connections
+# TYPE devops_platform_bot_connections gauge
+devops_platform_bot_connections {app_state.get("bot_gateway", {}).connection_count if "bot_gateway" in app_state else 0}
+""",
+            media_type="text/plain; version=0.0.4; charset=utf-8"
+        )
 
 
 @app.get("/api/dashboard/data")
 async def get_dashboard_data():
     """Get dashboard data for the React frontend."""
     try:
-        # Simulate dashboard data
-        dashboard_data = {
-            "agents": [
-                {
-                    "name": "BurstPredictor",
-                    "status": "healthy",
-                    "type": "prediction",
-                    "success_rate": 0.95,
-                    "avg_execution_time": 2.3,
-                    "total_executions": 150,
-                    "description": "Predicts traffic bursts and scaling needs",
-                    "enabled": True,
-                    "last_execution": "2024-01-15T10:30:00Z"
-                },
-                {
-                    "name": "CostWatcher",
-                    "status": "healthy",
-                    "type": "monitoring",
-                    "success_rate": 0.98,
-                    "avg_execution_time": 1.8,
-                    "total_executions": 89,
-                    "description": "Monitors cloud costs and optimizes spending",
-                    "enabled": True,
-                    "last_execution": "2024-01-15T10:25:00Z"
-                },
-                {
-                    "name": "AnomalyDetector",
-                    "status": "degraded",
-                    "type": "detection",
-                    "success_rate": 0.87,
-                    "avg_execution_time": 3.1,
-                    "total_executions": 67,
-                    "description": "Detects anomalies in system behavior",
-                    "enabled": True,
-                    "last_execution": "2024-01-15T10:20:00Z"
-                }
-            ],
-            "bots": [
-                {
-                    "type": "telegram",
-                    "status": "connected",
-                    "commands_processed": 45,
-                    "response_time_avg": 0.8,
-                    "last_activity": "2024-01-15T10:35:00Z",
-                    "connected": True
-                },
-                {
-                    "type": "slack",
-                    "status": "offline",
-                    "commands_processed": 12,
-                    "response_time_avg": 1.2,
-                    "last_activity": "2024-01-15T09:45:00Z",
-                    "connected": False
-                }
-            ],
-            "metrics": {
-                "cpu_usage": 45.2,
-                "memory_usage": 67.8,
-                "disk_usage": 23.1,
-                "network_io": 125.6,
-                "active_connections": 89,
-                "timestamp": "2024-01-15T10:35:00Z"
-            },
-            "alerts": [
-                {
-                    "id": "alert-001",
-                    "severity": "warning",
-                    "message": "High CPU usage detected",
-                    "timestamp": "2024-01-15T10:30:00Z",
-                    "acknowledged": False,
-                    "source": "system"
-                }
-            ],
-            "anomalies": [
-                {
-                    "id": "anomaly-001",
-                    "type": "performance",
-                    "severity": "medium",
-                    "description": "Unusual response time spike",
-                    "timestamp": "2024-01-15T10:25:00Z",
-                    "resolved": False
-                }
-            ],
-            "costs": {
-                "current_month": 1250.50,
-                "previous_month": 1180.30,
-                "trend": "increasing",
-                "breakdown": {
-                    "compute": 850.20,
-                    "storage": 280.10,
-                    "network": 95.30,
-                    "other": 24.90
-                },
-                "currency": "USD"
-            },
-            "performance": {
-                "avg_response_time": 245,
-                "throughput": 1250,
-                "error_rate": 0.02,
-                "availability": 99.8,
-                "uptime": "15d 8h 32m"
-            }
-        }
+        # Get dashboard manager from app state
+        dashboard_manager = app_state.get("dashboard_manager")
         
-        return dashboard_data
+        if not dashboard_manager:
+            # Create a temporary dashboard manager if not available
+            from core.config import Settings
+            from agents.registry import AgentRegistry
+            from core.dashboard import DashboardManager
+            
+            settings = Settings()
+            agent_registry = AgentRegistry(settings)
+            dashboard_manager = DashboardManager(settings, agent_registry)
+        
+        # Use dashboard manager to get real data with all 12 agents
+        await dashboard_manager.update_dashboard_data()
+        return dashboard_manager.dashboard_data.dict()
         
     except Exception as e:
         logger.error(f"Failed to get dashboard data: {e}")

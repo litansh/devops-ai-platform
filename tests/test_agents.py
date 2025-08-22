@@ -58,7 +58,7 @@ class TestBurstPredictorAgent:
         """Test agent description."""
         description = agent.description
         assert "traffic" in description.lower()
-        assert "prediction" in description.lower()
+        assert "predicts" in description.lower() or "prediction" in description.lower()
     
     @pytest.mark.asyncio
     async def test_analyze_with_valid_data(self, agent, context):

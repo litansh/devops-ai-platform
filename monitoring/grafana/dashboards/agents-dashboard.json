@@ -1,200 +1,187 @@
 {
-  "dashboard": {
-    "id": null,
-    "title": "DevOps AI Platform - Agents Dashboard",
-    "tags": ["devops-ai-platform", "agents"],
-    "style": "dark",
-    "timezone": "browser",
-    "panels": [
-      {
-        "id": 1,
-        "title": "Agent Execution Overview",
-        "type": "stat",
-        "targets": [
-          {
-            "expr": "agent_executions_total",
-            "legendFormat": "Total Executions"
-          }
-        ],
-        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0}
-      },
-      {
-        "id": 2,
-        "title": "Active Agents",
-        "type": "stat",
-        "targets": [
-          {
-            "expr": "agent_status{status=\"active\"}",
-            "legendFormat": "Active Agents"
-          }
-        ],
-        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 0}
-      },
-      {
-        "id": 3,
-        "title": "Agent Success Rate",
-        "type": "stat",
-        "targets": [
-          {
-            "expr": "rate(agent_executions_total{status=\"success\"}[5m]) / rate(agent_executions_total[5m]) * 100",
-            "legendFormat": "Success Rate %"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "unit": "percent",
-            "color": {
-              "mode": "thresholds"
-            },
-            "thresholds": {
-              "steps": [
-                {"color": "red", "value": 0},
-                {"color": "yellow", "value": 80},
-                {"color": "green", "value": 95}
-              ]
-            }
-          }
-        },
-        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0}
-      },
-      {
-        "id": 4,
-        "title": "Agent Execution Time",
-        "type": "stat",
-        "targets": [
-          {
-            "expr": "histogram_quantile(0.95, rate(agent_execution_duration_seconds_bucket[5m]))",
-            "legendFormat": "95th percentile"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "unit": "s"
-          }
-        },
-        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0}
-      },
-      {
-        "id": 5,
-        "title": "Agent Executions by Type",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "rate(agent_executions_total[5m])",
-            "legendFormat": "{{agent_type}}"
-          }
-        ],
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
-      },
-      {
-        "id": 6,
-        "title": "Agent Execution Duration",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "histogram_quantile(0.95, rate(agent_execution_duration_seconds_bucket[5m]))",
-            "legendFormat": "95th percentile - {{agent_type}}"
+  "id": null,
+  "title": "DevOps AI Platform - Agents Dashboard",
+  "tags": ["devops-ai-platform", "agents"],
+  "style": "dark",
+  "timezone": "browser",
+  "refresh": "30s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Agent Execution Overview",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "agent_executions_total",
+          "legendFormat": "Total Executions"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0},
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
           },
-          {
-            "expr": "histogram_quantile(0.50, rate(agent_execution_duration_seconds_bucket[5m]))",
-            "legendFormat": "50th percentile - {{agent_type}}"
+          "thresholds": {
+            "steps": [
+              {"color": "red", "value": 0},
+              {"color": "green", "value": 1}
+            ]
           }
-        ],
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
-      },
-      {
-        "id": 7,
-        "title": "Agent Errors",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "rate(agent_executions_total{status=\"error\"}[5m])",
-            "legendFormat": "Errors - {{agent_type}}"
-          }
-        ],
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16}
-      },
-      {
-        "id": 8,
-        "title": "Agent Queue Length",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "agent_queue_length",
-            "legendFormat": "Queue Length - {{agent_type}}"
-          }
-        ],
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16}
-      },
-      {
-        "id": 9,
-        "title": "Burst Predictor Agent Metrics",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "rate(burst_predictor_predictions_total[5m])",
-            "legendFormat": "Predictions/sec"
-          },
-          {
-            "expr": "burst_predictor_accuracy",
-            "legendFormat": "Prediction Accuracy"
-          }
-        ],
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24}
-      },
-      {
-        "id": 10,
-        "title": "Cost Watcher Agent Metrics",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "cost_watcher_savings_identified",
-            "legendFormat": "Savings Identified ($)"
-          },
-          {
-            "expr": "cost_watcher_recommendations_total",
-            "legendFormat": "Recommendations"
-          }
-        ],
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24}
-      },
-      {
-        "id": 11,
-        "title": "Anomaly Detector Agent Metrics",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "rate(anomaly_detector_anomalies_detected[5m])",
-            "legendFormat": "Anomalies Detected/sec"
-          },
-          {
-            "expr": "anomaly_detector_false_positive_rate",
-            "legendFormat": "False Positive Rate"
-          }
-        ],
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 32}
-      },
-      {
-        "id": 12,
-        "title": "Agent Resource Usage",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "agent_memory_usage_bytes / 1024 / 1024",
-            "legendFormat": "Memory Usage (MB) - {{agent_type}}"
-          },
-          {
-            "expr": "agent_cpu_usage_percent",
-            "legendFormat": "CPU Usage (%) - {{agent_type}}"
-          }
-        ],
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 32}
+        }
       }
-    ],
-    "time": {
-      "from": "now-1h",
-      "to": "now"
     },
-    "refresh": "30s"
-  }
+    {
+      "id": 2,
+      "title": "Active Agents",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "agent_status{status=\"active\"}",
+          "legendFormat": "Active Agents"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 6, "x": 6, "y": 0},
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {"color": "red", "value": 0},
+              {"color": "green", "value": 1}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Agent Success Rate",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "rate(agent_executions_total{status=\"success\"}[5m]) / rate(agent_executions_total[5m]) * 100",
+          "legendFormat": "Success Rate %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {"color": "red", "value": 0},
+              {"color": "yellow", "value": 80},
+              {"color": "green", "value": 95}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0}
+    },
+    {
+      "id": 4,
+      "title": "Agent Execution Time",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(agent_execution_duration_seconds_bucket[5m]))",
+          "legendFormat": "95th percentile"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      },
+      "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0}
+    },
+    {
+      "id": 5,
+      "title": "Agent CPU Usage",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "agent_cpu_usage_percent",
+          "legendFormat": "{{agent_name}}"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      }
+    },
+    {
+      "id": 6,
+      "title": "Agent Memory Usage",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "agent_memory_usage_bytes",
+          "legendFormat": "{{agent_name}}"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      }
+    },
+    {
+      "id": 7,
+      "title": "Agent Response Time",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(agent_response_time_seconds_sum[5m]) / rate(agent_response_time_seconds_count[5m])",
+          "legendFormat": "{{agent_name}}"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      }
+    },
+    {
+      "id": 8,
+      "title": "Agent Error Rate",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(agent_errors_total[5m])",
+          "legendFormat": "{{agent_name}}"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      }
+    }
+  ]
 }

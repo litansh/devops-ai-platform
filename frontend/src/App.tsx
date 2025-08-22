@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { CssBaseline } from '@mui/material';
+import { CssBaseline, Box } from '@mui/material';
 import { Toaster } from 'react-hot-toast';
 import { MainDashboard } from './components/Dashboard/MainDashboard';
+import { LoginPage } from './components/Auth/LoginPage';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // Create a theme instance
 const theme = createTheme({
@@ -81,23 +83,59 @@ const queryClient = new QueryClient({
   },
 });
 
+function AppContent() {
+  const { isAuthenticated, login, loading } = useAuth();
+  const [error, setError] = useState<string>('');
+
+  const handleLogin = async (username: string, password: string) => {
+    setError('');
+    const success = await login(username, password);
+    if (!success) {
+      setError('Invalid credentials. Please try again.');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        }}
+      >
+        <div className="loading-spinner" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <LoginPage onLogin={handleLogin} error={error} />;
+  }
+
+  return <MainDashboard />;
+}
+
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid #ecf0f1',
-              borderRadius: 12,
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-            },
-            success: {
+    <AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid #ecf0f1',
+                borderRadius: 12,
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+              },
+              success: {
               iconTheme: {
                 primary: '#27ae60',
                 secondary: 'white',
@@ -111,9 +149,10 @@ function App() {
             },
           }}
         />
-        <MainDashboard />
+        <AppContent />
       </ThemeProvider>
     </QueryClientProvider>
+  </AuthProvider>
   );
 }
 

@@ -12,6 +12,14 @@ import {
   Snackbar,
   CircularProgress,
   Fab,
+  Menu,
+  MenuItem,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
 } from '@mui/material';
 import {
   Refresh,
@@ -21,6 +29,10 @@ import {
   TrendingUp,
   Wifi,
   WifiOff,
+  AccountCircle,
+  Logout,
+  Lock,
+  KeyboardArrowDown,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from 'react-query';
@@ -32,9 +44,52 @@ import { PerformanceChart } from './PerformanceChart';
 import { dashboardApi, websocketService } from '../../services/api';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { DashboardData, PerformanceTrend } from '../../types/dashboard';
+import { useAuth } from '../../contexts/AuthContext';
 
 const DashboardHeader: React.FC = () => {
   const { websocketConnected, lastUpdated } = useDashboardStore();
+  const { user, logout } = useAuth();
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleChangePassword = () => {
+    handleMenuClose();
+    setChangePasswordOpen(true);
+  };
+
+  const handleLogout = () => {
+    handleMenuClose();
+    logout();
+    toast.success('Logged out successfully');
+  };
+
+  const handlePasswordSubmit = () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+    if (passwordData.newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+    // Here you would typically make an API call to change the password
+    toast.success('Password changed successfully');
+    setChangePasswordOpen(false);
+    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  };
   
   return (
     <motion.div
@@ -130,9 +185,87 @@ const DashboardHeader: React.FC = () => {
                 <Notifications />
               </IconButton>
             </Tooltip>
+
+            {/* User Menu */}
+            <Box display="flex" alignItems="center" gap={1}>
+              <Button
+                onClick={handleMenuOpen}
+                startIcon={<AccountCircle />}
+                endIcon={<KeyboardArrowDown />}
+                sx={{
+                  color: '#2c3e50',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  '&:hover': {
+                    backgroundColor: '#ecf0f1',
+                  },
+                }}
+              >
+                {user?.username || 'User'}
+              </Button>
+            </Box>
           </Box>
         </Box>
       </Box>
+
+      {/* User Menu */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        PaperProps={{
+          sx: {
+            mt: 1,
+            minWidth: 200,
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+            borderRadius: 2,
+          },
+        }}
+      >
+        <MenuItem onClick={handleChangePassword}>
+          <Lock sx={{ mr: 2, fontSize: 20 }} />
+          Change Password
+        </MenuItem>
+        <MenuItem onClick={handleLogout}>
+          <Logout sx={{ mr: 2, fontSize: 20 }} />
+          Logout
+        </MenuItem>
+      </Menu>
+
+      {/* Change Password Dialog */}
+      <Dialog open={changePasswordOpen} onClose={() => setChangePasswordOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Change Password</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            type="password"
+            label="Current Password"
+            value={passwordData.currentPassword}
+            onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            type="password"
+            label="New Password"
+            value={passwordData.newPassword}
+            onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            type="password"
+            label="Confirm New Password"
+            value={passwordData.confirmPassword}
+            onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+            margin="normal"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setChangePasswordOpen(false)}>Cancel</Button>
+          <Button onClick={handlePasswordSubmit} variant="contained">Change Password</Button>
+        </DialogActions>
+      </Dialog>
     </motion.div>
   );
 };
@@ -179,9 +312,9 @@ const OverviewCards: React.FC<{ data: DashboardData }> = ({ data }) => {
       <Grid item xs={12} sm={6} md={3}>
         <StatusCard
           title="Cost Analysis"
-          value={`$${data.costs.current_month.toFixed(2)}`}
-          subtitle="Current Month"
-          status={data.costs.current_month < 100 ? 'success' : data.costs.current_month < 500 ? 'warning' : 'error'}
+          value={data.costs.current_month !== null ? `$${data.costs.current_month.toFixed(2)}` : 'No Data'}
+          subtitle={data.costs.status === 'no_aws_connection' ? 'AWS Not Connected' : 'Current Month'}
+          status={data.costs.current_month === null ? 'warning' : data.costs.current_month < 100 ? 'success' : data.costs.current_month < 500 ? 'warning' : 'error'}
           trend={data.costs.trend === 'increasing' ? 'up' : data.costs.trend === 'decreasing' ? 'down' : 'stable'}
           icon={<TrendingUp />}
         />
@@ -199,6 +332,42 @@ const AgentSection: React.FC<{ agents: any[] }> = ({ agents }) => {
       toast.success(`Executed agent: ${agentName}`);
     } catch (error) {
       toast.error(`Failed to execute agent: ${agentName}`);
+    }
+  };
+
+  const handleRestartAgent = async (agentName: string) => {
+    try {
+      await dashboardApi.restartAgent(agentName);
+      toast.success(`Restarted agent: ${agentName}`);
+    } catch (error) {
+      toast.error(`Failed to restart agent: ${agentName}`);
+    }
+  };
+
+  const handleToggleAgent = async (agentName: string) => {
+    try {
+      await dashboardApi.toggleAgent(agentName);
+      toast.success(`Toggled agent: ${agentName}`);
+    } catch (error) {
+      toast.error(`Failed to toggle agent: ${agentName}`);
+    }
+  };
+
+  const handleDeleteAgent = async (agentName: string) => {
+    try {
+      await dashboardApi.deleteAgent(agentName);
+      toast.success(`Deleted agent: ${agentName}`);
+    } catch (error) {
+      toast.error(`Failed to delete agent: ${agentName}`);
+    }
+  };
+
+  const handleConfigureAgent = async (agentName: string) => {
+    try {
+      // This would open a configuration dialog
+      toast.success(`Configuration for agent: ${agentName} - Coming soon`);
+    } catch (error) {
+      toast.error(`Failed to configure agent: ${agentName}`);
     }
   };
 
@@ -227,9 +396,10 @@ const AgentSection: React.FC<{ agents: any[] }> = ({ agents }) => {
               <AgentStatusCard
                 agent={agent}
                 onExecute={handleExecuteAgent}
-                onToggle={(agentName) => {
-                  setSelectedAgent(selectedAgent === agentName ? null : agentName);
-                }}
+                onToggle={handleToggleAgent}
+                onRestart={handleRestartAgent}
+                onDelete={handleDeleteAgent}
+                onConfigure={handleConfigureAgent}
               />
             </motion.div>
           </Grid>

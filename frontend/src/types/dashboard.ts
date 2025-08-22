@@ -2,8 +2,8 @@ export interface Agent {
   name: string;
   status: 'healthy' | 'degraded' | 'unhealthy' | 'offline';
   last_execution: string;
-  success_rate: number;
-  avg_execution_time: number;
+  success_rate: number | null;
+  avg_execution_time: number | null;
   total_executions: number;
   description: string;
   enabled: boolean;
@@ -48,16 +48,18 @@ export interface Anomaly {
 }
 
 export interface CostData {
-  current_month: number;
-  previous_month: number;
+  current_month: number | null;
+  previous_month: number | null;
   trend: 'increasing' | 'decreasing' | 'stable';
   breakdown: {
-    compute: number;
-    storage: number;
-    network: number;
-    other: number;
+    compute: number | null;
+    storage: number | null;
+    network: number | null;
+    other: number | null;
   };
   currency: string;
+  status?: string;
+  message?: string;
 }
 
 export interface PerformanceData {

@@ -28,6 +28,7 @@ class AgentStatus(str, Enum):
     DEGRADED = "degraded"
     UNHEALTHY = "unhealthy"
     OFFLINE = "offline"
+    RESTARTING = "restarting"
 
 
 class BotType(str, Enum):
@@ -115,21 +116,91 @@ class DashboardManager(LoggerMixin):
         """Get current agent data for dashboard."""
         agents = []
         
+        # Add implemented agents from registry
         for agent in self.agent_registry.agents.values():
-            # Simulate agent metrics (in real implementation, get from monitoring)
+            # Get real agent health data
+            health = agent.get_health_status()
+            # Map agent status to dashboard status
+            agent_status = health.get('status', 'idle')
+            
+            # Check if agent is restarting
+            is_restarting = getattr(agent, '_restarting', False)
+            
+            if is_restarting:
+                dashboard_status = 'restarting'  # Agent is currently restarting
+            elif agent_status == 'error':
+                dashboard_status = 'unhealthy'  # Error status = unhealthy regardless of enabled state
+            elif agent.enabled and agent_status == 'idle':
+                dashboard_status = 'healthy'  # Idle is healthy for enabled agents
+            elif agent_status == 'running':
+                dashboard_status = 'healthy'
+            elif not agent.enabled:
+                dashboard_status = 'offline'
+            else:
+                dashboard_status = 'healthy'  # Default to healthy for enabled agents
+            
             agent_info = {
-                "name": agent.name,
-                "status": agent.get_health_status(),
-                "last_execution": datetime.now().isoformat(),
-                "success_rate": 0.95,  # Simulated
-                "avg_execution_time": 0.5,  # Simulated
-                "total_executions": 150,  # Simulated
+                "name": agent.name.replace('_', ' ').title(),  # Format name nicely
+                "status": dashboard_status,
+                "last_execution": health.get('last_execution', datetime.now().isoformat()),
+                "success_rate": health.get('success_rate', 0.0),
+                "avg_execution_time": health.get('avg_execution_time', 0.0),
+                "total_executions": health.get('execution_count', 0),
                 "description": agent.description,
                 "enabled": agent.enabled,
                 "type": agent.agent_type.value
             }
             agents.append(agent_info)
         
+        # Add planned agents (not yet implemented)
+        planned_agents = [
+            {
+                "name": "PatchUpdater",
+                "status": "planned",
+                "type": "maintenance",
+                "success_rate": 0.0,
+                "avg_execution_time": 0.0,
+                "total_executions": 0,
+                "description": "Automated security patch management and deployment",
+                "enabled": False,
+                "last_execution": None
+            },
+            {
+                "name": "DiskCleaner",
+                "status": "planned",
+                "type": "optimization",
+                "success_rate": 0.0,
+                "avg_execution_time": 0.0,
+                "total_executions": 0,
+                "description": "Storage optimization and cleanup automation",
+                "enabled": False,
+                "last_execution": None
+            },
+            {
+                "name": "PodRestarter",
+                "status": "planned",
+                "type": "health",
+                "success_rate": 0.0,
+                "avg_execution_time": 0.0,
+                "total_executions": 0,
+                "description": "Pod health monitoring and automatic restart",
+                "enabled": False,
+                "last_execution": None
+            },
+            {
+                "name": "DBMaintainer",
+                "status": "planned",
+                "type": "database",
+                "success_rate": 0.0,
+                "avg_execution_time": 0.0,
+                "total_executions": 0,
+                "description": "Database maintenance and optimization automation",
+                "enabled": False,
+                "last_execution": None
+            }
+        ]
+        
+        agents.extend(planned_agents)
         return agents
     
     async def get_bot_data(self) -> List[Dict[str, Any]]:
@@ -202,18 +273,44 @@ class DashboardManager(LoggerMixin):
     
     async def get_cost_data(self) -> Dict[str, Any]:
         """Get cost analysis data."""
-        # Simulate cost data (in real implementation, get from cost watcher)
+        # Check if AWS credentials are configured
+        import os
+        aws_configured = all([
+            os.getenv('AWS_ACCESS_KEY_ID'),
+            os.getenv('AWS_SECRET_ACCESS_KEY'),
+            os.getenv('AWS_DEFAULT_REGION')
+        ])
+        
+        if not aws_configured:
+            return {
+                "current_month": None,
+                "previous_month": None,
+                "trend": "no_data",
+                "breakdown": {
+                    "compute": None,
+                    "storage": None,
+                    "network": None,
+                    "other": None
+                },
+                "currency": "USD",
+                "status": "no_aws_connection",
+                "message": "AWS credentials not configured. Connect your AWS account to view cost analysis."
+            }
+        
+        # In real implementation, get from cost watcher agent
         return {
-            "current_month": 0.0,
-            "previous_month": 0.0,
-            "trend": "stable",
+            "current_month": None,  # Will be populated by CostWatcher agent
+            "previous_month": None,
+            "trend": "no_data",
             "breakdown": {
-                "compute": 0.0,
-                "storage": 0.0,
-                "network": 0.0,
-                "other": 0.0
+                "compute": None,
+                "storage": None,
+                "network": None,
+                "other": None
             },
-            "currency": "USD"
+            "currency": "USD",
+            "status": "no_cost_data",
+            "message": "Cost data not available. CostWatcher agent needs to be executed."
         }
     
     async def get_performance_data(self) -> Dict[str, Any]:

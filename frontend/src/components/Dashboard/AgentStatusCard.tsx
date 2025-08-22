@@ -20,6 +20,9 @@ import {
   ExpandLess,
   PlayArrow,
   Stop,
+  Refresh,
+  Delete,
+  Settings,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
@@ -29,6 +32,9 @@ interface AgentStatusCardProps {
   agent: Agent;
   onExecute?: (agentName: string) => void;
   onToggle?: (agentName: string) => void;
+  onRestart?: (agentName: string) => void;
+  onDelete?: (agentName: string) => void;
+  onConfigure?: (agentName: string) => void;
 }
 
 const getStatusIcon = (status: string) => {
@@ -39,6 +45,8 @@ const getStatusIcon = (status: string) => {
       return <Warning sx={{ color: '#f39c12' }} />;
     case 'unhealthy':
       return <Error sx={{ color: '#e74c3c' }} />;
+    case 'restarting':
+      return <Refresh sx={{ color: '#3498db' }} />;
     case 'offline':
       return <RadioButtonUnchecked sx={{ color: '#95a5a6' }} />;
     default:
@@ -54,6 +62,8 @@ const getStatusColor = (status: string) => {
       return '#f39c12';
     case 'unhealthy':
       return '#e74c3c';
+    case 'restarting':
+      return '#3498db';
     case 'offline':
       return '#95a5a6';
     default:
@@ -69,6 +79,8 @@ const getStatusLabel = (status: string) => {
       return 'Degraded';
     case 'unhealthy':
       return 'Unhealthy';
+    case 'restarting':
+      return 'Restarting';
     case 'offline':
       return 'Offline';
     default:
@@ -80,6 +92,9 @@ export const AgentStatusCard: React.FC<AgentStatusCardProps> = ({
   agent,
   onExecute,
   onToggle,
+  onRestart,
+  onDelete,
+  onConfigure,
 }) => {
   const [expanded, setExpanded] = React.useState(false);
 
@@ -97,8 +112,24 @@ export const AgentStatusCard: React.FC<AgentStatusCardProps> = ({
     onToggle?.(agent.name);
   };
 
-  const successRateColor = agent.success_rate >= 0.9 ? '#27ae60' : 
-                          agent.success_rate >= 0.7 ? '#f39c12' : '#e74c3c';
+  const handleRestart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onRestart?.(agent.name);
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDelete?.(agent.name);
+  };
+
+  const handleConfigure = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onConfigure?.(agent.name);
+  };
+
+  const successRateColor = agent.success_rate !== null ? 
+                          (agent.success_rate >= 0.9 ? '#27ae60' : 
+                           agent.success_rate >= 0.7 ? '#f39c12' : '#e74c3c') : '#95a5a6';
 
   return (
     <motion.div
@@ -208,6 +239,51 @@ export const AgentStatusCard: React.FC<AgentStatusCardProps> = ({
                   <PlayArrow fontSize="small" />
                 </IconButton>
               </Tooltip>
+
+              <Tooltip title="Restart Agent">
+                <IconButton
+                  size="small"
+                  onClick={handleRestart}
+                  sx={{
+                    color: '#f39c12',
+                    '&:hover': {
+                      backgroundColor: '#ecf0f1',
+                    },
+                  }}
+                >
+                  <Refresh fontSize="small" />
+                </IconButton>
+              </Tooltip>
+
+              <Tooltip title="Configure Agent">
+                <IconButton
+                  size="small"
+                  onClick={handleConfigure}
+                  sx={{
+                    color: '#9b59b6',
+                    '&:hover': {
+                      backgroundColor: '#ecf0f1',
+                    },
+                  }}
+                >
+                  <Settings fontSize="small" />
+                </IconButton>
+              </Tooltip>
+
+              <Tooltip title="Delete Agent">
+                <IconButton
+                  size="small"
+                  onClick={handleDelete}
+                  sx={{
+                    color: '#e74c3c',
+                    '&:hover': {
+                      backgroundColor: '#ecf0f1',
+                    },
+                  }}
+                >
+                  <Delete fontSize="small" />
+                </IconButton>
+              </Tooltip>
               
               <Tooltip title={expanded ? 'Show Less' : 'Show More'}>
                 <IconButton
@@ -238,7 +314,7 @@ export const AgentStatusCard: React.FC<AgentStatusCardProps> = ({
                   color: successRateColor,
                 }}
               >
-                {(agent.success_rate * 100).toFixed(1)}%
+                {agent.success_rate !== null ? (agent.success_rate * 100).toFixed(1) : 'N/A'}%
               </Typography>
             </Box>
             
@@ -253,7 +329,7 @@ export const AgentStatusCard: React.FC<AgentStatusCardProps> = ({
                   color: '#2c3e50',
                 }}
               >
-                {agent.avg_execution_time.toFixed(2)}s
+                {agent.avg_execution_time !== null ? agent.avg_execution_time.toFixed(2) : 'N/A'}s
               </Typography>
             </Box>
             

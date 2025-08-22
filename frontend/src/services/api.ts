@@ -10,6 +10,9 @@ const ENDPOINTS = {
   health: '/health',
   agents: '/agents',
   executeAgent: (name: string) => `/agents/${name}/execute`,
+  restartAgent: (name: string) => `/agents/${name}/restart`,
+  toggleAgent: (name: string) => `/agents/${name}/toggle`,
+  deleteAgent: (name: string) => `/agents/${name}`,
   metrics: '/metrics',
 };
 
@@ -74,6 +77,24 @@ export const dashboardApi = {
   // Execute agent
   executeAgent: async (agentName: string, context?: any) => {
     const response = await api.post(ENDPOINTS.executeAgent(agentName), { context });
+    return response.data;
+  },
+
+  // Restart agent
+  restartAgent: async (agentName: string) => {
+    const response = await api.post(ENDPOINTS.restartAgent(agentName));
+    return response.data;
+  },
+
+  // Toggle agent (enable/disable)
+  toggleAgent: async (agentName: string) => {
+    const response = await api.post(ENDPOINTS.toggleAgent(agentName));
+    return response.data;
+  },
+
+  // Delete agent
+  deleteAgent: async (agentName: string) => {
+    const response = await api.delete(ENDPOINTS.deleteAgent(agentName));
     return response.data;
   },
 
