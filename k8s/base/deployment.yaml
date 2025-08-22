@@ -1,0 +1,104 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devops-ai-platform
+  labels:
+    app: devops-ai-platform
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: devops-ai-platform
+  template:
+    metadata:
+      labels:
+        app: devops-ai-platform
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: devops-ai-platform
+      containers:
+      - name: devops-ai-platform
+        image: devops-ai-platform:latest
+        ports:
+        - containerPort: 8000
+          name: http
+        - containerPort: 9090
+          name: metrics
+        env:
+        - name: PLATFORM_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: devops-ai-platform-config
+              key: platform_env
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: devops-ai-platform-secrets
+              key: database_url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: devops-ai-platform-secrets
+              key: redis_url
+        - name: MONGODB_URL
+          valueFrom:
+            secretKeyRef:
+              name: devops-ai-platform-secrets
+              key: mongodb_url
+        - name: TELEGRAM_BOT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: devops-ai-platform-secrets
+              key: telegram_bot_token
+        - name: SLACK_BOT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: devops-ai-platform-secrets
+              key: slack_bot_token
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: devops-ai-platform-secrets
+              key: aws_access_key_id
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: devops-ai-platform-secrets
+              key: aws_secret_access_key
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        volumeMounts:
+        - name: config-volume
+          mountPath: /app/config
+        - name: logs-volume
+          mountPath: /app/logs
+      volumes:
+      - name: config-volume
+        configMap:
+          name: devops-ai-platform-config
+      - name: logs-volume
+        emptyDir: {}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
