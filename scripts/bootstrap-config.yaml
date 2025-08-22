@@ -1,0 +1,190 @@
+# DevOps AI Platform Bootstrap Configuration
+# This file contains environment-specific configurations for the bootstrap script
+
+local:
+  cluster_name: "devops-ai-platform-local"
+  registry: "local"
+  monitoring: true
+  grafana_admin_password: "admin"
+  argocd_admin_password: "admin"
+  
+  # Terraform configuration for local
+  terraform:
+    workspace: "local"
+    backend: "local"
+    variables:
+      environment: "local"
+      aws_region: "us-west-2"
+  
+  # Local development settings
+  ports:
+    application: 8000
+    argocd: 8080
+    grafana: 3000
+    prometheus: 9090
+  
+  # Resource limits for local development
+  resources:
+    cpu_limit: "1000m"
+    memory_limit: "2Gi"
+    cpu_request: "500m"
+    memory_request: "1Gi"
+
+testing:
+  cluster_name: "devops-ai-platform-testing"
+  aws_region: "us-west-2"
+  registry: "ghcr.io"
+  monitoring: true
+  
+  # Terraform configuration for testing
+  terraform:
+    workspace: "testing"
+    backend: "s3"
+    variables:
+      environment: "testing"
+      aws_region: "us-west-2"
+
+production:
+  cluster_name: "devops-ai-platform-prod"
+  aws_region: "us-west-2"
+  registry: "ghcr.io"
+  monitoring: true
+  
+  # Terraform configuration for production
+  terraform:
+    workspace: "production"
+    backend: "s3"
+    variables:
+      environment: "production"
+      aws_region: "us-west-2"
+  
+  # EKS cluster configuration
+  eks_config:
+    kubernetes_version: "1.28"
+    node_groups:
+      general:
+        instance_types: ["t3.medium"]
+        desired_capacity: 2
+        max_capacity: 5
+        min_capacity: 1
+      monitoring:
+        instance_types: ["t3.small"]
+        desired_capacity: 2
+        max_capacity: 3
+        min_capacity: 1
+  
+  # Database configuration
+  database:
+    instance_class: "db.t3.micro"
+    allocated_storage: 20
+    backup_retention_period: 7
+  
+  # Redis configuration
+  redis:
+    node_type: "cache.t3.micro"
+    num_cache_nodes: 1
+  
+  # Monitoring configuration
+  monitoring_config:
+    retention_days: 15
+    alerting_enabled: true
+    grafana_admin_password: "admin123"
+  
+  # Security configuration
+  security:
+    enable_ssl: true
+    enable_iam_auth: true
+    enable_network_policies: true
+
+gcp:
+  cluster_name: "devops-ai-platform-gcp"
+  gcp_project: "your-project-id"
+  gcp_region: "us-central1"
+  registry: "gcr.io"
+  monitoring: true
+  
+  # GKE cluster configuration
+  gke_config:
+    kubernetes_version: "1.28"
+    node_pools:
+      general:
+        machine_type: "e2-medium"
+        initial_node_count: 2
+        max_node_count: 5
+        min_node_count: 1
+      monitoring:
+        machine_type: "e2-small"
+        initial_node_count: 2
+        max_node_count: 3
+        min_node_count: 1
+  
+  # Cloud SQL configuration
+  database:
+    instance_type: "db-f1-micro"
+    storage_gb: 10
+    backup_enabled: true
+  
+  # Memorystore configuration
+  redis:
+    tier: "BASIC"
+    size_gb: 1
+  
+  # Monitoring configuration
+  monitoring_config:
+    retention_days: 15
+    alerting_enabled: true
+    grafana_admin_password: "admin123"
+  
+  # Security configuration
+  security:
+    enable_ssl: true
+    enable_workload_identity: true
+    enable_network_policies: true
+
+# Common configuration for all environments
+common:
+  # Application configuration
+  app:
+    replicas: 2
+    image_pull_policy: "Always"
+    health_check_path: "/health"
+    readiness_check_path: "/ready"
+  
+  # Bot configuration
+  bots:
+    telegram_enabled: true
+    slack_enabled: true
+    command_timeout: 30
+    max_concurrent_commands: 5
+  
+  # Agent configuration
+  agents:
+    max_concurrent_executions: 10
+    execution_timeout: 300
+    retry_attempts: 3
+    retry_delay: 5
+  
+  # Monitoring configuration
+  monitoring:
+    prometheus_scrape_interval: "30s"
+    grafana_refresh_interval: "30s"
+    alert_manager_resolve_timeout: "5m"
+  
+  # Logging configuration
+  logging:
+    level: "INFO"
+    format: "json"
+    retention_days: 30
+  
+  # Backup configuration
+  backup:
+    enabled: true
+    schedule: "0 2 * * *"  # Daily at 2 AM
+    retention_days: 30
+  
+  # Security configuration
+  security:
+    enable_audit_logging: true
+    enable_secret_rotation: true
+    enable_network_policies: true
+    enable_pod_security_policies: true

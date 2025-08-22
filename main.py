@@ -40,21 +40,24 @@ app_state: Dict[str, Any] = {}
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifespan manager for startup and shutdown."""
-    # Startup
+    """Application lifespan manager."""
     logger.info("🚀 Starting DevOps AI Platform...")
     
     try:
-        # Initialize configuration
+        # Load settings
         settings = Settings()
         app_state["settings"] = settings
         
         # Setup logging
         setup_logging(settings.log_level)
         
-        # Initialize database
-        await init_database(settings.database_url)
-        logger.info("✅ Database initialized")
+        # Initialize database (skip for local testing if database is not available)
+        try:
+            await init_database(settings.database_url)
+            logger.info("✅ Database initialized")
+        except Exception as e:
+            logger.warning(f"⚠️ Database initialization skipped (local mode): {e}")
+            logger.info("✅ Running in local mode without database")
         
         # Setup monitoring
         setup_monitoring(settings)
@@ -72,7 +75,7 @@ async def lifespan(app: FastAPI):
         logger.info("✅ Bot gateway started")
         
         # Initialize task scheduler
-        scheduler = TaskScheduler(agent_registry, bot_gateway)
+        scheduler = TaskScheduler(agent_registry, bot_gateway, settings)
         app_state["scheduler"] = scheduler
         await scheduler.start()
         logger.info("✅ Task scheduler started")

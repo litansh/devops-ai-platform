@@ -1,0 +1,265 @@
+# DevOps AI Platform - AI Agent Guidelines
+
+## Project Overview
+This is a production-ready DevOps AI Platform that automates complex infrastructure operations using AI agents with human oversight. The platform is AWS-focused with GCP compatibility built-in.
+
+## Core Architecture Principles
+
+### 1. AI Agent Design (MCP Protocol)
+- All agents must inherit from `BaseAgent` class
+- Implement both `analyze()` and `optimize()` methods
+- Use structured logging with correlation IDs
+- Include comprehensive error handling and retry logic
+- Follow async/await patterns for all I/O operations
+- Implement health checks and status reporting
+- Use type hints throughout all agent code
+
+### 2. Safety & Governance
+- ALWAYS implement human-in-the-loop for critical changes
+- Require PR approval for infrastructure modifications
+- Include risk assessment before any automated actions
+- Implement rollback mechanisms for all changes
+- Log all agent decisions and actions for audit trails
+- Use least privilege access principles
+
+### 3. Bot Interface Guidelines
+- All bot commands must be documented in help text
+- Implement proper error handling for bot interactions
+- Use structured responses with clear formatting
+- Include confirmation prompts for destructive actions
+- Support both Telegram and Slack interfaces
+- Implement rate limiting for bot commands
+
+## Code Quality Standards
+
+### Python Code
+- Use Python 3.11+ features and type hints
+- Follow PEP 8 style guidelines
+- Use async/await for all I/O operations
+- Implement comprehensive error handling
+- Use structured logging with JSON format
+- Write unit tests for all new functionality
+- Use dependency injection for better testability
+
+### Infrastructure Code (Terraform)
+- Use semantic versioning for all modules
+- Implement proper variable validation
+- Use data sources for dynamic configuration
+- Include comprehensive documentation
+- Follow AWS best practices for security
+- Use consistent naming conventions
+- Implement proper state management
+
+### Kubernetes Manifests
+- Use Kustomize for environment-specific configurations
+- Implement proper resource limits and requests
+- Use security contexts for pod security
+- Include health checks and readiness probes
+- Use ConfigMaps and Secrets appropriately
+- Follow GitOps principles with ArgoCD
+
+## Security Guidelines
+
+### Authentication & Authorization
+- Use IAM roles and service accounts
+- Implement least privilege access
+- Use secrets management for sensitive data
+- Implement proper RBAC in Kubernetes
+- Use network policies for pod-to-pod communication
+
+### Data Protection
+- Encrypt data at rest and in transit
+- Use secure communication protocols
+- Implement proper backup and recovery
+- Follow data retention policies
+- Use secure coding practices
+
+## Monitoring & Observability
+
+### Metrics & Logging
+- Expose Prometheus metrics for all components
+- Use structured logging with correlation IDs
+- Implement distributed tracing
+- Include health check endpoints
+- Monitor resource usage and performance
+
+### Alerting
+- Set up proactive alerting for critical issues
+- Use appropriate alert severity levels
+- Implement escalation policies
+- Include runbook links in alerts
+- Monitor cost and resource utilization
+
+## Testing Requirements
+
+### Unit Testing
+- Achieve minimum 80% code coverage
+- Test all agent logic and edge cases
+- Mock external dependencies
+- Use parameterized tests for multiple scenarios
+- Test error conditions and recovery
+
+### Integration Testing
+- Test agent interactions with external services
+- Verify bot command functionality
+- Test database operations and migrations
+- Validate monitoring and alerting
+- Test deployment and rollback procedures
+
+### End-to-End Testing
+- Test complete workflows from bot command to action
+- Verify human-in-the-loop approval processes
+- Test infrastructure provisioning and teardown
+- Validate monitoring dashboard functionality
+- Test disaster recovery procedures
+
+## Documentation Standards
+
+### Code Documentation
+- Use docstrings for all public methods
+- Include type hints and parameter descriptions
+- Document complex algorithms and business logic
+- Provide usage examples in docstrings
+- Keep documentation up-to-date with code changes
+
+### Architecture Documentation
+- Maintain up-to-date architecture diagrams
+- Document data flows and dependencies
+- Include deployment and configuration guides
+- Document troubleshooting procedures
+- Keep runbooks current and accessible
+
+## Performance Guidelines
+
+### Scalability
+- Design for horizontal scaling
+- Use connection pooling for databases
+- Implement caching strategies
+- Use async processing for long-running tasks
+- Monitor and optimize resource usage
+
+### Reliability
+- Implement circuit breakers for external calls
+- Use retry mechanisms with exponential backoff
+- Implement graceful degradation
+- Use health checks and self-healing
+- Monitor and alert on SLA violations
+
+## Development Workflow
+
+### Git Workflow
+- Use feature branches for development
+- Require PR reviews for all changes
+- Use conventional commit messages
+- Keep commits atomic and focused
+- Update documentation with code changes
+
+### CI/CD Pipeline
+- Automate testing and deployment
+- Use semantic versioning
+- Implement blue-green deployments
+- Include security scanning in pipeline
+- Monitor deployment success rates
+
+## AWS Best Practices
+
+### Resource Management
+- Use AWS managed services where possible
+- Implement proper tagging strategies
+- Use CloudFormation or Terraform for IaC
+- Monitor and optimize costs
+- Follow AWS Well-Architected Framework
+
+### Security
+- Use VPC with private subnets
+- Implement proper security groups
+- Use IAM roles with least privilege
+- Enable CloudTrail for audit logging
+- Use AWS Config for compliance monitoring
+
+## GCP Compatibility
+
+### Multi-Cloud Design
+- Abstract cloud-specific implementations
+- Use cloud-agnostic APIs where possible
+- Implement provider-specific adapters
+- Test compatibility with both AWS and GCP
+- Document cloud-specific configurations
+
+## Error Handling
+
+### Exception Management
+- Use specific exception types
+- Implement proper error recovery
+- Log errors with context and stack traces
+- Provide user-friendly error messages
+- Implement circuit breakers for external services
+
+### Monitoring & Alerting
+- Monitor error rates and patterns
+- Set up alerts for critical errors
+- Implement error correlation and grouping
+- Use error tracking and reporting
+- Maintain error runbooks and procedures
+
+## When Making Changes
+
+### Before Implementing
+1. Understand the existing architecture
+2. Review related components and dependencies
+3. Consider the impact on monitoring and alerting
+4. Plan for testing and validation
+5. Update documentation as needed
+
+### During Implementation
+1. Follow established patterns and conventions
+2. Write tests for new functionality
+3. Update monitoring and alerting
+4. Consider security implications
+5. Implement proper error handling
+
+### After Implementation
+1. Verify functionality in all environments
+2. Update documentation and runbooks
+3. Monitor performance and error rates
+4. Gather feedback from users
+5. Plan for future improvements
+
+## Common Patterns
+
+### Agent Pattern
+```python
+class ExampleAgent(BaseAgent):
+    def __init__(self):
+        super().__init__("example_agent")
+    
+    async def analyze(self, context: Dict[str, Any]) -> AgentResult:
+        # Analysis logic here
+        pass
+    
+    async def optimize(self, context: Dict[str, Any]) -> AgentResult:
+        # Optimization logic here
+        pass
+```
+
+### Bot Command Pattern
+```python
+@bot.command("example")
+async def example_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        # Command logic here
+        await update.message.reply_text("Success!")
+    except Exception as e:
+        logger.error(f"Command failed: {e}")
+        await update.message.reply_text("Command failed. Please try again.")
+```
+
+### Monitoring Pattern
+```python
+from core.monitoring import MetricsCollector
+
+metrics = MetricsCollector()
+metrics.record_agent_execution("agent_name", "success", duration)
+```
+
+Remember: This is a production system that manages critical infrastructure. Always prioritize safety, reliability, and observability over speed of development.

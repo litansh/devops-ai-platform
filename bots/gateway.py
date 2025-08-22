@@ -46,11 +46,16 @@ class BotGateway(LoggerMixin):
                 self.logger.info("✅ Telegram bot started")
             
             # Start Slack bot if configured
-            if self.settings.slack_bot_token:
-                from bots.slack_bot import SlackBot
-                self.slack_bot = SlackBot(self.settings, self)
-                await self.slack_bot.start()
-                self.logger.info("✅ Slack bot started")
+            if self.settings.slack_bot_token and self.settings.slack_bot_token != "your_slack_bot_token":
+                try:
+                    from bots.slack_bot import SlackBot
+                    self.slack_bot = SlackBot(self.settings, self)
+                    await self.slack_bot.start()
+                    self.logger.info("✅ Slack bot started")
+                except Exception as e:
+                    self.logger.warning(f"⚠️ Slack bot failed to start (skipping): {e}")
+            else:
+                self.logger.info("ℹ️ Slack bot not configured, skipping")
             
             self.logger.info("✅ Bot gateway started successfully")
             

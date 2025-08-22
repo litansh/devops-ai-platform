@@ -134,8 +134,8 @@ def setup_monitoring(settings: Settings) -> MetricsCollector:
     """
     try:
         # Start Prometheus metrics server
-        start_http_server(8000, registry=registry)
-        logger.info("✅ Prometheus metrics server started on port 8000")
+        start_http_server(9091, registry=registry)
+        logger.info("✅ Prometheus metrics server started on port 9091")
         
         # Create metrics collector
         collector = MetricsCollector(settings)

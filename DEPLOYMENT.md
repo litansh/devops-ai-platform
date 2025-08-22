@@ -144,6 +144,12 @@ If you prefer manual setup:
    kubectl apply -f k8s/argocd/applications/
    ```
 
+5. **Update repository URL** (if needed):
+   ```bash
+   # Edit k8s/argocd/applications/dev-application.yaml and prod-application.yaml
+   # Update the repoURL to match your GitHub repository
+   ```
+
 ### Install Monitoring Stack
 
 1. **Add Helm repositories**:

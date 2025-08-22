@@ -40,9 +40,14 @@ async def init_database(database_url: str) -> None:
     global _postgres_engine, _redis_client, _mongodb_client
     
     try:
-        # Initialize PostgreSQL
+        # Initialize PostgreSQL with async driver
+        if database_url.startswith("postgresql://"):
+            async_database_url = database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        else:
+            async_database_url = database_url
+            
         _postgres_engine = create_async_engine(
-            database_url,
+            async_database_url,
             echo=False,
             pool_size=10,
             max_overflow=20,

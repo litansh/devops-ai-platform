@@ -13,6 +13,7 @@ resources:
   - hpa.yaml
   - pdb.yaml
   - monitoring.yaml
+  - grafana-configmap.yaml
 
 commonLabels:
   app: devops-ai-platform
