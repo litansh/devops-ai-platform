@@ -53,12 +53,10 @@ flowchart TD
     end
 
 
-    subgraph "MCP Agents"
-        MCP Agents --> ApprovalEngine
-        ApprovalEngine --> GitHubPRs
-        AnalysisEngine --> MCP Agents
-        CommandProcessor --> InfrastructureLayer
-    end
+    MCPAgents --> ApprovalEngine
+    ApprovalEngine --> GitHubPRs
+    AnalysisEngine --> MCP Agents
+    CommandProcessor --> InfrastructureLayer
 ```
 
 ---
