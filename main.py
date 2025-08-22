@@ -27,6 +27,7 @@ from core.database import init_database
 from core.logging import setup_logging
 from core.monitoring import setup_monitoring
 from core.scheduler import TaskScheduler
+from core.dashboard import dashboard_router, init_dashboard
 
 # Load environment variables
 load_dotenv()
@@ -80,6 +81,11 @@ async def lifespan(app: FastAPI):
         await scheduler.start()
         logger.info("✅ Task scheduler started")
         
+        # Initialize dashboard
+        dashboard_manager = init_dashboard(settings, agent_registry)
+        app_state["dashboard_manager"] = dashboard_manager
+        logger.info("✅ Dashboard initialized")
+        
         logger.info("🎉 DevOps AI Platform started successfully!")
         
     except Exception as e:
@@ -124,6 +130,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include dashboard router
+app.include_router(dashboard_router)
+
+# Test dashboard endpoint
+@app.get("/dashboard-test")
+async def dashboard_test():
+    """Test endpoint to verify dashboard router is working."""
+    return {"message": "Dashboard router is working"}
 
 
 @app.get("/")
@@ -199,6 +214,131 @@ async def get_metrics():
         "total_agents": len(app_state.get("agent_registry", {}).agents) if "agent_registry" in app_state else 0,
         "active_tasks": app_state.get("scheduler", {}).active_tasks if "scheduler" in app_state else 0,
         "bot_connections": app_state.get("bot_gateway", {}).connection_count if "bot_gateway" in app_state else 0
+    }
+
+
+@app.get("/api/dashboard/data")
+async def get_dashboard_data():
+    """Get dashboard data for the React frontend."""
+    try:
+        # Simulate dashboard data
+        dashboard_data = {
+            "agents": [
+                {
+                    "name": "BurstPredictor",
+                    "status": "healthy",
+                    "type": "prediction",
+                    "success_rate": 0.95,
+                    "avg_execution_time": 2.3,
+                    "total_executions": 150,
+                    "description": "Predicts traffic bursts and scaling needs",
+                    "enabled": True,
+                    "last_execution": "2024-01-15T10:30:00Z"
+                },
+                {
+                    "name": "CostWatcher",
+                    "status": "healthy",
+                    "type": "monitoring",
+                    "success_rate": 0.98,
+                    "avg_execution_time": 1.8,
+                    "total_executions": 89,
+                    "description": "Monitors cloud costs and optimizes spending",
+                    "enabled": True,
+                    "last_execution": "2024-01-15T10:25:00Z"
+                },
+                {
+                    "name": "AnomalyDetector",
+                    "status": "degraded",
+                    "type": "detection",
+                    "success_rate": 0.87,
+                    "avg_execution_time": 3.1,
+                    "total_executions": 67,
+                    "description": "Detects anomalies in system behavior",
+                    "enabled": True,
+                    "last_execution": "2024-01-15T10:20:00Z"
+                }
+            ],
+            "bots": [
+                {
+                    "type": "telegram",
+                    "status": "connected",
+                    "commands_processed": 45,
+                    "response_time_avg": 0.8,
+                    "last_activity": "2024-01-15T10:35:00Z",
+                    "connected": True
+                },
+                {
+                    "type": "slack",
+                    "status": "offline",
+                    "commands_processed": 12,
+                    "response_time_avg": 1.2,
+                    "last_activity": "2024-01-15T09:45:00Z",
+                    "connected": False
+                }
+            ],
+            "metrics": {
+                "cpu_usage": 45.2,
+                "memory_usage": 67.8,
+                "disk_usage": 23.1,
+                "network_io": 125.6,
+                "active_connections": 89,
+                "timestamp": "2024-01-15T10:35:00Z"
+            },
+            "alerts": [
+                {
+                    "id": "alert-001",
+                    "severity": "warning",
+                    "message": "High CPU usage detected",
+                    "timestamp": "2024-01-15T10:30:00Z",
+                    "acknowledged": False,
+                    "source": "system"
+                }
+            ],
+            "anomalies": [
+                {
+                    "id": "anomaly-001",
+                    "type": "performance",
+                    "severity": "medium",
+                    "description": "Unusual response time spike",
+                    "timestamp": "2024-01-15T10:25:00Z",
+                    "resolved": False
+                }
+            ],
+            "costs": {
+                "current_month": 1250.50,
+                "previous_month": 1180.30,
+                "trend": "increasing",
+                "breakdown": {
+                    "compute": 850.20,
+                    "storage": 280.10,
+                    "network": 95.30,
+                    "other": 24.90
+                },
+                "currency": "USD"
+            },
+            "performance": {
+                "avg_response_time": 245,
+                "throughput": 1250,
+                "error_rate": 0.02,
+                "availability": 99.8,
+                "uptime": "15d 8h 32m"
+            }
+        }
+        
+        return dashboard_data
+        
+    except Exception as e:
+        logger.error(f"Failed to get dashboard data: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/dashboard/health")
+async def get_dashboard_health():
+    """Get dashboard health status."""
+    return {
+        "status": "healthy",
+        "timestamp": "2024-01-15T10:35:00Z",
+        "version": "1.0.0"
     }
 
 

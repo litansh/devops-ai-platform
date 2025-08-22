@@ -52,10 +52,13 @@ flowchart TD
         ApprovalEngine --> RollbackTrigger
     end
 
-    MCP Agents --> ApprovalEngine
-    ApprovalEngine --> GitHubPRs
-    AnalysisEngine --> MCP Agents
-    CommandProcessor --> InfrastructureLayer
+
+    subgraph "MCP Agents"
+        MCP Agents --> ApprovalEngine
+        ApprovalEngine --> GitHubPRs
+        AnalysisEngine --> MCP Agents
+        CommandProcessor --> InfrastructureLayer
+    end
 ```
 
 ---
@@ -91,6 +94,14 @@ flowchart TD
 * **Anomaly Detection**: Proactive identification of issues before they impact
 * **Approval Workflow**: Safe deployment of AI-generated changes
 * **Conversational Commands**: Natural language interaction with the platform
+
+### 🖥️ Modern Web Dashboard
+* **React-based UI**: Beautiful, responsive dashboard with glassmorphism design
+* **Real-time Updates**: WebSocket-powered live data streaming
+* **Agent Management**: Visual control and monitoring of all AI agents
+* **Performance Charts**: Interactive charts for system metrics and trends
+* **Alert Management**: Real-time alert and anomaly visualization
+* **Mobile Responsive**: Works perfectly on desktop, tablet, and mobile devices
 
 ### 🛡️ Safety & Governance
 * **PR-Based Changes**: All modifications go through GitHub PRs
@@ -227,10 +238,14 @@ cd devops-ai-platform
 # Run the automated setup script
 ./scripts/local-setup.sh
 
+# Start the React dashboard (in a new terminal)
+./scripts/start-frontend.sh
+
 # Access services:
-# - Application: http://localhost:8000
+# - React Dashboard: http://localhost:3000
+# - Application API: http://localhost:8000
 # - ArgoCD UI: https://localhost:8080 (admin/admin)
-# - Grafana: http://localhost:3000 (admin/admin)
+# - Grafana: http://localhost:3001 (admin/admin)
 ```
 
 ### 3. Production Deployment
@@ -260,6 +275,81 @@ python -m pytest tests/ -v
 # Start with Docker Compose
 docker-compose up -d
 ```
+
+---
+
+## 🖥️ Modern Web Dashboard
+
+The platform includes a beautiful, responsive React-based dashboard that provides comprehensive monitoring and control capabilities.
+
+### 🎨 Dashboard Features
+
+#### Real-time Monitoring
+- **Live Data Updates**: WebSocket-powered real-time data streaming
+- **Agent Status**: Visual health monitoring of all AI agents
+- **System Metrics**: CPU, memory, disk, and network utilization
+- **Performance Trends**: Historical performance data visualization
+- **Cost Analysis**: Real-time cloud cost monitoring and trends
+
+#### Interactive Controls
+- **Agent Management**: Execute and control AI agents directly from the UI
+- **Status Cards**: Beautiful glassmorphism design with hover effects
+- **Expandable Details**: Click to see detailed agent information
+- **Real-time Charts**: Interactive performance and trend charts
+- **Alert Management**: Visual alert and anomaly management
+
+#### Modern Design
+- **Glassmorphism UI**: Beautiful frosted glass effects with backdrop blur
+- **Responsive Layout**: Works perfectly on desktop, tablet, and mobile
+- **Smooth Animations**: Framer Motion powered transitions
+- **Professional Typography**: Clean, modern font hierarchy
+- **Color-coded Status**: Intuitive status indicators
+
+### 🚀 Quick Dashboard Start
+
+```bash
+# Navigate to frontend directory
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start development server
+npm start
+
+# Access dashboard at: http://localhost:3000
+```
+
+### 📊 Dashboard Components
+
+| Component | Purpose | Features |
+|-----------|---------|----------|
+| **Platform Overview** | Quick health status | Gauge visualization, color-coded thresholds |
+| **Agent Status** | AI agent monitoring | Individual status, success rates, execution times |
+| **Performance Trends** | System performance | Real-time charts, historical data |
+| **Cost Analysis** | Cloud cost monitoring | Current vs previous month, trends |
+| **Alerts & Anomalies** | Issue management | Real-time alerts, anomaly detection |
+| **Bot Activity** | Bot performance | Command rates, response times |
+
+### 🎯 Dashboard Use Cases
+
+#### For DevOps Engineers
+- **Infrastructure Monitoring**: Track system health and performance
+- **Agent Management**: Monitor AI agent status and performance
+- **Cost Optimization**: Identify cost anomalies and optimization opportunities
+- **Alert Management**: Respond to critical issues quickly
+
+#### For Platform Administrators
+- **Capacity Planning**: Analyze resource utilization trends
+- **Performance Tuning**: Identify bottlenecks and optimization opportunities
+- **Security Monitoring**: Track security-related anomalies
+- **Compliance Reporting**: Generate performance and health reports
+
+#### For Business Stakeholders
+- **Cost Analysis**: Monitor cloud spending and trends
+- **Performance Overview**: High-level platform health status
+- **Anomaly Awareness**: Stay informed about critical issues
+- **ROI Tracking**: Monitor platform efficiency and value
 
 ---
 
