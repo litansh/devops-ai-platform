@@ -55,7 +55,7 @@ flowchart TD
 
     MCPAgents --> ApprovalEngine
     ApprovalEngine --> GitHubPRs
-    AnalysisEngine --> MCP Agents
+    AnalysisEngine --> MCPAgents
     CommandProcessor --> InfrastructureLayer
 ```
 
