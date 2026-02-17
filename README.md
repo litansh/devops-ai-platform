@@ -1,6 +1,6 @@
 # DevOps AI Platform
 
-**Autonomous infrastructure management powered by 12 AI agents with human-in-the-loop safety.**
+**Autonomous infrastructure management powered by AI agents with human-in-the-loop safety.**
 
 ---
 
@@ -14,14 +14,17 @@
 
 ## 🚀 What It Does
 
+### Current Capabilities (8 Active Agents)
+
 - **Predictive Scaling:** BurstPredictor and AutoScalerAdvisor analyze traffic patterns and recommend HPA configurations before traffic spikes hit
-- **Cost Optimization:** CostWatcher identifies waste (idle resources, oversized instances) and proposes right-sizing changes saving 30%+ on cloud spend
+- **Cost Optimization:** CostWatcher identifies waste (idle resources, oversized instances) and proposes right-sizing changes
 - **Anomaly Detection:** AnomalyDetector monitors metrics and alerts on deviations before they become incidents
-- **Automated Maintenance:** PatchUpdater, DiskCleaner, PodRestarter, and DBMaintainer handle routine operations
-- **Security Response:** SecurityResponder triages alerts and suggests remediation
-- **Interactive Control:** Telegram/Slack bot interface for real-time analysis and approvals (`/status`, `/cost`, `/approve pr-123`)
+- **Performance Analysis:** BottleneckScanner identifies slow queries and resource bottlenecks
+- **Capacity Planning:** CapacityPlanner forecasts resource needs based on growth trends
+- **Security Response:** SecurityResponder triages security alerts and suggests remediation
+- **Load Management:** LoadShifter optimizes traffic distribution across zones
 - **Full Observability:** Prometheus + Grafana + AlertManager with 3 pre-built dashboards
-- **GitOps Safety:** All infrastructure changes go through GitHub PRs with rollback triggers on performance degradation
+- **GitOps Safety:** All infrastructure changes go through GitHub PRs with diff review
 
 ---
 
@@ -45,7 +48,7 @@
 └─────────────────────────────────────────────────────────┘
                          ↓
 ┌─────────────────────────────────────────────────────────┐
-│  AI Agent Layer (12 MCP Agents)                        │
+│  AI Agent Layer (8 MCP Agents)                         │
 │  ├─ BurstPredictor (traffic forecasting)               │
 │  ├─ AutoScalerAdvisor (HPA optimization)               │
 │  ├─ CostWatcher (spend analysis)                       │
@@ -53,11 +56,7 @@
 │  ├─ BottleneckScanner (performance analysis)           │
 │  ├─ CapacityPlanner (resource forecasting)             │
 │  ├─ SecurityResponder (incident triage)                │
-│  ├─ LoadShifter (traffic distribution)                 │
-│  ├─ PatchUpdater (security patching)                   │
-│  ├─ DiskCleaner (storage optimization)                 │
-│  ├─ PodRestarter (health management)                   │
-│  └─ DBMaintainer (database ops)                        │
+│  └─ LoadShifter (traffic distribution)                 │
 └─────────────────────────────────────────────────────────┘
                          ↓
 ┌─────────────────────────────────────────────────────────┐
@@ -83,21 +82,34 @@
 
 ## 🏃 Quickstart
 
-### Option 1: Local Development (Recommended)
+### Option 1: Docker Compose (Fastest)
 
-**One-command setup** with local kind cluster:
+**Get all services running in ~5 minutes:**
 
 ```bash
 git clone https://github.com/litansh/devops-ai-platform.git
 cd devops-ai-platform
-./scripts/local-setup.sh
+cp config.env.example .env
+docker-compose up -d
 ```
 
-**Includes:**
-- kind cluster with Kubernetes v1.28
-- ArgoCD with GitOps automation
-- Prometheus + Grafana monitoring stack
-- Sample workloads for agent testing
+**Access:**
+- Platform API: http://localhost:8000
+- Grafana: http://localhost:3001 (admin/admin)
+- Prometheus: http://localhost:9090
+
+### Option 2: Local Development with Kind
+
+**For Kubernetes testing:**
+
+```bash
+# Prerequisites: Docker, kind, kubectl
+make kind-cluster          # Create local cluster
+make install-monitoring    # Deploy Prometheus/Grafana
+make deploy-agents         # Deploy AI agents
+```
+
+See `Makefile` for all available commands.
 
 **Access:**
 - API: http://localhost:8000
@@ -217,6 +229,48 @@ MAX_CONCURRENT_AGENTS=10          # Max parallel agent executions
 
 ---
 
+## 🎬 Demo Flow (5 Steps to See Value)
+
+Prove the platform works locally in ~10 minutes:
+
+### 1. Start the Stack
+```bash
+docker-compose up -d
+# Wait 60-90 seconds for all services to be ready
+docker-compose ps  # Verify all services are "Up"
+```
+
+### 2. Verify Agent Registration
+```bash
+curl http://localhost:8000/api/agents | jq
+# Should show 8 registered agents with status "ready"
+```
+
+### 3. Trigger Manual Agent Run
+```bash
+# Run the CostWatcher agent to analyze infrastructure
+curl -X POST http://localhost:8000/api/agents/cost_watcher/run
+```
+
+### 4. View Results in Grafana
+```bash
+open http://localhost:3001  # (or visit manually)
+# Login: admin/admin
+# Open: "AI Agents Performance" dashboard
+# See: CostWatcher execution metrics and recommendations
+```
+
+### 5. Check Generated Reports
+```bash
+# View agent output logs
+docker-compose logs devops-ai-platform | grep "CostWatcher"
+# See: Cost optimization recommendations with potential savings
+```
+
+**Expected Output:** Cost analysis report identifying idle resources, unused volumes, and right-sizing opportunities with estimated monthly savings.
+
+---
+
 ## 📊 Observability
 
 ### Metrics (Prometheus)
@@ -323,19 +377,19 @@ kubectl logs -f deployment/devops-ai-platform -n devops-ai-platform
 ## 🗺️ Roadmap
 
 ### ✅ Phase 1: Foundation (Complete)
-- [x] 12 MCP agents implemented and tested
-- [x] Bot gateway (Telegram/Slack) with approval workflow
-- [x] Local development environment (kind cluster)
+- [x] 8 core MCP agents (Burst, AutoScaler, Cost, Anomaly, Bottleneck, Capacity, Security, LoadShifter)
 - [x] Docker Compose for rapid testing
-- [x] Complete observability stack (Prometheus/Grafana)
-- [x] Terraform infrastructure for AWS EKS
+- [x] Complete observability stack (Prometheus + 3 Grafana dashboards)
+- [x] GitOps PR workflow architecture
+- [x] Terraform infrastructure templates for AWS EKS
 
 ### 🔄 Phase 2: Production Hardening (In Progress)
+- [ ] **Additional agents:** PatchUpdater, DiskCleaner, PodRestarter, DBMaintainer
+- [ ] Bot gateway (Telegram/Slack) with interactive approval workflow
 - [ ] SSL/TLS configuration with Let's Encrypt
 - [ ] Automated backup and disaster recovery
 - [ ] Performance optimization and load testing
 - [ ] Multi-AZ high availability setup
-- [ ] Advanced cost optimization algorithms
 - [ ] Security scanning integration (Trivy, Falco)
 
 ### 📋 Phase 3: Advanced AI Features (Q2 2026)
