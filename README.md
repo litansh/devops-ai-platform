@@ -1,657 +1,401 @@
-# 🧠 DevOps AI Platform – Autonomous Infrastructure with Human Oversight
+# DevOps AI Platform
 
-> **AI-powered DevOps platform** that automates complex infrastructure operations using **MCP (Model Context Protocol) agents**,  
-> provides **interactive bot control** via Telegram/Slack, and maintains **man-in-the-loop safety** for critical decisions.  
-> Built for **AWS** with **GCP compatibility** designed in from day one.
+**Autonomous infrastructure management powered by 12 AI agents with human-in-the-loop safety.**
 
 ---
 
-## 🏗️ System Architecture – Multi-Layer AI Automation
+## 🎯 Why It Exists
 
-```mermaid
-flowchart TD
-    User --> TelegramBot
-    User --> SlackBot
-    TelegramBot --> BotGateway
-    SlackBot --> BotGateway
+**Problem:** DevOps teams spend 60-80% of their time on reactive operations—manual scaling, cost overruns, incident response, and repetitive maintenance tasks. Traditional automation is brittle and requires constant tuning.
 
-    BotGateway --> ApprovalEngine
-    BotGateway --> AnalysisEngine
-    BotGateway --> CommandProcessor
+**Solution:** AI agents that predict infrastructure needs, detect anomalies, optimize costs, and propose changes via pull requests—all while keeping humans in control through a bot-driven approval workflow.
 
-    subgraph "AI Agent Layer (MCP)"
-        BurstPredictor
-        AutoScalerAdvisor
-        BottleneckScanner
-        LoadShifter
-        CostWatcher
-        PatchUpdater
-        DiskCleaner
-        PodRestarter
-        DBMaintainer
-        SecurityResponder
-        AnomalyDetector
-        CapacityPlanner
-    end
+---
 
-    subgraph "Infrastructure Layer"
-        Terraform --> VPC
-        Terraform --> EC2
-        Terraform --> EKS
-        Terraform --> RDS
-        Terraform --> S3
-        ArgoCD --> HelmCharts
-        HelmCharts --> EKS
-        Prometheus --> MetricsDB
-        AlertManager --> NotificationHub
-    end
+## 🚀 What It Does
 
-    subgraph "Safety Layer"
-        ApprovalEngine --> PRValidator
-        ApprovalEngine --> RiskAssessment
-        ApprovalEngine --> RollbackTrigger
-    end
+- **Predictive Scaling:** BurstPredictor and AutoScalerAdvisor analyze traffic patterns and recommend HPA configurations before traffic spikes hit
+- **Cost Optimization:** CostWatcher identifies waste (idle resources, oversized instances) and proposes right-sizing changes saving 30%+ on cloud spend
+- **Anomaly Detection:** AnomalyDetector monitors metrics and alerts on deviations before they become incidents
+- **Automated Maintenance:** PatchUpdater, DiskCleaner, PodRestarter, and DBMaintainer handle routine operations
+- **Security Response:** SecurityResponder triages alerts and suggests remediation
+- **Interactive Control:** Telegram/Slack bot interface for real-time analysis and approvals (`/status`, `/cost`, `/approve pr-123`)
+- **Full Observability:** Prometheus + Grafana + AlertManager with 3 pre-built dashboards
+- **GitOps Safety:** All infrastructure changes go through GitHub PRs with rollback triggers on performance degradation
 
+---
 
-    MCPAgents --> ApprovalEngine
-    ApprovalEngine --> GitHubPRs
-    AnalysisEngine --> MCPAgents
-    CommandProcessor --> InfrastructureLayer
+## 🏗️ Architecture
+
+### High-Level Components
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  User Interface                                         │
+│  ├─ Telegram Bot (interactive commands)                │
+│  ├─ Slack Bot (team notifications)                     │
+│  └─ React Dashboard (visual monitoring)                │
+└─────────────────────────────────────────────────────────┘
+                         ↓
+┌─────────────────────────────────────────────────────────┐
+│  Bot Gateway & Approval Engine                         │
+│  ├─ Command routing and parsing                        │
+│  ├─ PR-based approval workflow                         │
+│  └─ Risk assessment and rollback triggers              │
+└─────────────────────────────────────────────────────────┘
+                         ↓
+┌─────────────────────────────────────────────────────────┐
+│  AI Agent Layer (12 MCP Agents)                        │
+│  ├─ BurstPredictor (traffic forecasting)               │
+│  ├─ AutoScalerAdvisor (HPA optimization)               │
+│  ├─ CostWatcher (spend analysis)                       │
+│  ├─ AnomalyDetector (deviation detection)              │
+│  ├─ BottleneckScanner (performance analysis)           │
+│  ├─ CapacityPlanner (resource forecasting)             │
+│  ├─ SecurityResponder (incident triage)                │
+│  ├─ LoadShifter (traffic distribution)                 │
+│  ├─ PatchUpdater (security patching)                   │
+│  ├─ DiskCleaner (storage optimization)                 │
+│  ├─ PodRestarter (health management)                   │
+│  └─ DBMaintainer (database ops)                        │
+└─────────────────────────────────────────────────────────┘
+                         ↓
+┌─────────────────────────────────────────────────────────┐
+│  Infrastructure Layer                                   │
+│  ├─ Kubernetes (EKS) - orchestration                   │
+│  ├─ Terraform - IaC provisioning                       │
+│  ├─ ArgoCD - GitOps deployments                        │
+│  ├─ Prometheus - metrics collection                    │
+│  └─ AWS Services (EC2, RDS, S3, Lambda)                │
+└─────────────────────────────────────────────────────────┘
 ```
 
----
+### Data Flow
 
-## 🎯 Platform Vision & Core Principles
-
-**Mission**: Automate complex DevOps operations while maintaining human oversight and safety.
-
-**Key Principles**:
-- 🤖 **AI-First**: MCP agents handle complex decision-making and analysis
-- 👤 **Human-in-the-Loop**: Critical changes require approval via bot interface
-- 🔒 **Safety-First**: Multi-layer validation and rollback capabilities
-- 💬 **Interactive**: Full conversational interface for all operations
-- 🔄 **Proactive**: Predictive scaling and anomaly detection
-- 💰 **Cost-Aware**: Real-time cost analysis and optimization
+1. **Agents analyze** infrastructure metrics every 5 minutes
+2. **Issues detected** → Agent opens GitHub PR with proposed fix
+3. **Bot notifies** → Telegram/Slack message with `/approve` command
+4. **Human reviews** → Approves or rejects via bot
+5. **Auto-deploy** → ArgoCD applies changes if approved
+6. **Monitoring** → Rollback triggered if performance degrades
 
 ---
 
-## 🚀 Core Capabilities
+## 🏃 Quickstart
 
-### 🤖 AI Agent Automation
-* **BurstPredictor**: Time-series analysis for traffic prediction
-* **AutoScalerAdvisor**: ML-based HPA configuration optimization
-* **BottleneckScanner**: Performance bottleneck detection and resolution
-* **CostWatcher**: Real-time cost analysis and optimization recommendations
-* **SecurityResponder**: Automated security incident response
-* **AnomalyDetector**: ML-based anomaly detection across all metrics
-* **CapacityPlanner**: Predictive capacity planning and resource optimization
+### Option 1: Local Development (Recommended)
 
-### 💬 Interactive Bot Interface
-* **Real-time Analysis**: Get instant insights on infrastructure health
-* **Cost Breakdown**: Detailed cost analysis with optimization suggestions
-* **Anomaly Detection**: Proactive identification of issues before they impact
-* **Approval Workflow**: Safe deployment of AI-generated changes
-* **Conversational Commands**: Natural language interaction with the platform
+**One-command setup** with local kind cluster:
 
-### 🖥️ Modern Web Dashboard
-* **React-based UI**: Beautiful, responsive dashboard with glassmorphism design
-* **Real-time Updates**: WebSocket-powered live data streaming
-* **Agent Management**: Visual control and monitoring of all AI agents
-* **Performance Charts**: Interactive charts for system metrics and trends
-* **Alert Management**: Real-time alert and anomaly visualization
-* **Mobile Responsive**: Works perfectly on desktop, tablet, and mobile devices
-
-### 🛡️ Safety & Governance
-* **PR-Based Changes**: All modifications go through GitHub PRs
-* **Risk Assessment**: AI-powered risk analysis before deployment
-* **Rollback Triggers**: Automatic rollback on performance degradation
-* **Audit Trail**: Complete logging of all decisions and actions
-* **Multi-Layer Validation**: Multiple safety checks before execution
-
-### ☁️ Infrastructure Management
-* **Multi-Cloud Ready**: AWS-first with GCP compatibility designed in
-* **Terraform-Based**: Infrastructure as Code with version control
-* **Observability**: Comprehensive monitoring and alerting
-* **Cost Optimization**: Automated cost reduction strategies
-
----
-
-## 🛠️ Implementation Roadmap
-
-### Phase 1: Foundation (✅ Complete)
-- [x] **Bot Gateway**: Telegram/Slack integration framework
-- [x] **Complete MCP Agents**: All 12 agents implemented (BurstPredictor, CostWatcher, AnomalyDetector, AutoScalerAdvisor, BottleneckScanner, LoadShifter, SecurityResponder, CapacityPlanner, PatchUpdater, DiskCleaner, PodRestarter, DBMaintainer)
-- [x] **AWS Infrastructure**: Complete Terraform infrastructure with EKS, RDS, ElastiCache, DocumentDB
-- [x] **Safety Layer**: PR-based approval workflow with human-in-the-loop
-- [x] **Interactive Commands**: Full bot command interface
-- [x] **CI/CD Pipeline**: GitHub Actions + ArgoCD GitOps
-- [x] **Monitoring**: Complete Prometheus + Grafana stack with 3 dashboards
-- [x] **Local Development**: kind cluster with local ArgoCD and monitoring
-
-### Phase 2: Production Deployment (🔄 In Progress)
-- [x] **Production Infrastructure**: Multi-AZ EKS cluster with high availability
-- [x] **Security Hardening**: IAM roles, security groups, secrets management
-- [x] **Monitoring & Alerting**: Comprehensive observability stack
-- [x] **Documentation**: Complete deployment and operation guides
-- [ ] **SSL/TLS Configuration**: Production certificates and HTTPS
-- [ ] **Backup & Recovery**: Automated backup procedures
-- [ ] **Performance Optimization**: Load testing and tuning
-
-### Phase 3: Advanced Features (📋 Planned)
-- [ ] **Advanced Analytics**: Deep learning for pattern recognition
-- [ ] **Predictive Maintenance**: Proactive issue prevention
-- [ ] **Cost Optimization**: Advanced cost reduction strategies
-- [ ] **Performance Tuning**: Automated performance optimization
-- [ ] **Multi-Region**: Global deployment across multiple regions
-
-### Phase 4: Multi-Cloud & Enterprise (📋 Future)
-- [ ] **GCP Support**: Full GCP compatibility
-- [ ] **Enterprise Features**: Multi-tenant, RBAC, SSO
-- [ ] **Advanced Security**: Zero-trust architecture
-- [ ] **Global Scale**: Multi-region deployment
-
----
-
-## ☁️ Cloud Compatibility
-
-**Current Implementation: AWS Only**  
-**Future Roadmap: GCP Support**
-
-| Component       | AWS Free Tier (Current)  | GCP Alternative (Planned) |
-| --------------- | ------------------------ | ------------------------- |
-| Compute         | EC2 t4g.micro / Spot     | GCE f1-micro              |
-| Kubernetes      | EKS control plane free   | GKE Autopilot             |
-| DB              | RDS db.t3.micro 750hr    | Cloud SQL smallest tier   |
-| Object Storage  | S3 5GB + lifecycle rules | GCS 5GB                   |
-| Cost Monitoring | Cost Explorer + Budgets  | GCP Billing Alerts        |
-| Monitoring      | Prometheus + Grafana OSS | GCP Cloud Monitoring      |
-
----
-
-## ⚡ Technical Specifications
-
-### 🏗️ Infrastructure Components
-
-| Component              | Purpose                                                       | Implementation                      |
-| ---------------------- | ------------------------------------------------------------- | ----------------------------------- |
-| **HPA**                | Reactive autoscaling based on CPU/memory                      | `terraform/modules/hpa/`            |
-| **VPA (optional)**     | Vertical pod autoscaling for resource optimization            | `helm-charts/vpa/`                  |
-| **Cluster Autoscaler** | Node group scaling for pending pods                          | `helm-charts/cluster-autoscaler/`   |
-| **Istio Service Mesh** | Advanced traffic management and load distribution             | `helm-charts/istio/`                |
-| **ArgoCD**             | GitOps-based deployment management                            | `helm-charts/argocd/`               |
-
-### 🤖 AI Agent Specifications
-
-| Agent                 | Purpose                                                       | Implementation                      |
-| --------------------- | ------------------------------------------------------------- | ----------------------------------- |
-| **BurstPredictor**    | Time-series analysis for traffic prediction                   | `agents/burst-predictor/`           |
-| **AutoScalerAdvisor** | ML-based HPA configuration optimization                       | `agents/autoscaler-advisor/`        |
-| **BottleneckScanner** | Performance bottleneck detection and resolution               | `agents/bottleneck-scanner/`        |
-| **CostWatcher**       | Real-time cost analysis and optimization                      | `agents/cost-watcher/`              |
-| **AnomalyDetector**   | ML-based anomaly detection across metrics                     | `agents/anomaly-detector/`          |
-| **SecurityResponder** | Automated security incident response                          | `agents/security-responder/`        |
-| **CapacityPlanner**   | Predictive capacity planning and resource optimization        | `agents/capacity-planner/`          |
-| **LoadShifter**       | Intelligent load distribution across zones/regions            | `agents/load-shifter/`              |
-
-### 📊 Observability Stack
-
-| Component             | Purpose                                                       | Implementation                      |
-| --------------------- | ------------------------------------------------------------- | ----------------------------------- |
-| **Prometheus**        | Metrics collection and storage                                | `helm-charts/prometheus/`           |
-| **Grafana**           | Visualization and dashboards                                  | `helm-charts/grafana/`              |
-| **AlertManager**      | Alert routing and notification management                     | `helm-charts/alertmanager/`         |
-| **k6**                | Synthetic testing and load testing                            | `helm-charts/k6/`                   |
-| **ELK Stack**         | Log aggregation and analysis                                  | `helm-charts/elasticsearch/`        |
-
-### 🔐 Security & Governance
-
-| Component             | Purpose                                                       | Implementation                      |
-| --------------------- | ------------------------------------------------------------- | ----------------------------------- |
-| **IAM/RBAC**          | Identity and access management                                | `terraform/modules/iam/`            |
-| **Secrets Manager**   | Secure secret storage and rotation                            | `terraform/modules/secrets/`        |
-| **Network Security**  | VPC, security groups, and network policies                    | `terraform/modules/network/`        |
-| **Audit Logging**     | Comprehensive audit trail                                     | `terraform/modules/audit/`          |
-| **Compliance**        | SOC2, GDPR, and industry compliance                           | `terraform/modules/compliance/`     |
-
----
-
-## 🚀 Quick Start Guide
-
-### Prerequisites
-- **AWS Account** with appropriate permissions
-- **Terraform** >= 1.5.0
-- **kubectl** >= 1.28.0
-- **helm** >= 3.12.0
-- **Python** >= 3.9 (for MCP agents)
-- **Telegram Bot Token** (or Slack App credentials)
-
-### 1. Clone and Setup
 ```bash
-git clone https://github.com/your-org/devops-ai-platform.git
+git clone https://github.com/litansh/devops-ai-platform.git
 cd devops-ai-platform
-```
-
-### 2. Local Development (Recommended)
-```bash
-# Run the automated setup script
 ./scripts/local-setup.sh
-
-# Start the React dashboard (in a new terminal)
-./scripts/start-frontend.sh
-
-# Access services:
-# - React Dashboard: http://localhost:3000
-# - Application API: http://localhost:8000
-# - ArgoCD UI: https://localhost:8080 (admin/admin)
-# - Grafana: http://localhost:3001 (admin/admin)
 ```
 
-### 3. Production Deployment
-```bash
-# Configure environment
-cp config.env.example .env
-# Edit .env with your AWS credentials and bot tokens
+**Includes:**
+- kind cluster with Kubernetes v1.28
+- ArgoCD with GitOps automation
+- Prometheus + Grafana monitoring stack
+- Sample workloads for agent testing
 
-# Deploy infrastructure
+**Access:**
+- API: http://localhost:8000
+- Grafana: http://localhost:3001 (admin/admin)
+- ArgoCD: https://localhost:8080 (admin/admin)
+- Prometheus: http://localhost:9090
+
+**Time:** < 5 minutes
+
+---
+
+### Option 2: Docker Compose (Fastest)
+
+**All services in containers** (no Kubernetes required):
+
+```bash
+git clone https://github.com/litansh/devops-ai-platform.git
+cd devops-ai-platform
+
+# Copy and configure environment
+cp config.env.example .env
+# Edit .env with your API keys (OpenAI, Telegram, etc.)
+
+# Start all services
+docker-compose up -d
+```
+
+**Includes:**
+- FastAPI backend (port 8000)
+- PostgreSQL, Redis, MongoDB
+- Prometheus (port 9090)
+- Grafana (port 3001)
+- AlertManager (port 9093)
+
+**Time:** < 2 minutes
+
+---
+
+### Option 3: Production AWS Deployment
+
+**Full Terraform deployment** to AWS EKS:
+
+```bash
 cd terraform
 terraform init
 terraform plan
 terraform apply
 
-# Deploy application via ArgoCD
-kubectl apply -f k8s/argocd/applications/
+# Deploy applications via ArgoCD
+kubectl apply -f k8s/argocd/applications/prod-application.yaml
 ```
 
-### 4. Manual Setup (Alternative)
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Run tests
-python -m pytest tests/ -v
-
-# Start with Docker Compose
-docker-compose up -d
-```
+**See:** `DEPLOYMENT.md` for detailed production setup
 
 ---
 
-## 🖥️ Modern Web Dashboard
+## ⚙️ Configuration
 
-The platform includes a beautiful, responsive React-based dashboard that provides comprehensive monitoring and control capabilities.
+### Environment Variables
 
-### 🎨 Dashboard Features
-
-#### Real-time Monitoring
-- **Live Data Updates**: WebSocket-powered real-time data streaming
-- **Agent Status**: Visual health monitoring of all AI agents
-- **System Metrics**: CPU, memory, disk, and network utilization
-- **Performance Trends**: Historical performance data visualization
-- **Cost Analysis**: Real-time cloud cost monitoring and trends
-
-#### Interactive Controls
-- **Agent Management**: Execute and control AI agents directly from the UI
-- **Status Cards**: Beautiful glassmorphism design with hover effects
-- **Expandable Details**: Click to see detailed agent information
-- **Real-time Charts**: Interactive performance and trend charts
-- **Alert Management**: Visual alert and anomaly management
-
-#### Modern Design
-- **Glassmorphism UI**: Beautiful frosted glass effects with backdrop blur
-- **Responsive Layout**: Works perfectly on desktop, tablet, and mobile
-- **Smooth Animations**: Framer Motion powered transitions
-- **Professional Typography**: Clean, modern font hierarchy
-- **Color-coded Status**: Intuitive status indicators
-
-### 🚀 Quick Dashboard Start
+Create `.env` from `config.env.example`:
 
 ```bash
-# Navigate to frontend directory
-cd frontend
+# Required: Platform basics
+PLATFORM_ENV=development          # development|staging|production
+LOG_LEVEL=INFO                    # DEBUG|INFO|WARN|ERROR
 
-# Install dependencies
-npm install
+# Required: Cloud credentials (at least one)
+AWS_ACCESS_KEY_ID=xxx             # AWS access key
+AWS_SECRET_ACCESS_KEY=xxx         # AWS secret key
+AWS_REGION=us-west-2              # AWS region
 
-# Start development server
-npm start
+# Required: AI/ML APIs (choose provider)
+OPENAI_API_KEY=sk-xxx             # OpenAI for embeddings and LLM
+MODEL_PROVIDER=openai             # openai|anthropic
 
-# Access dashboard at: http://localhost:3000
+# Optional: Bot interfaces
+TELEGRAM_BOT_TOKEN=123:xxx        # Get from @BotFather
+TELEGRAM_CHAT_ID=123456789        # Your Telegram user ID
+SLACK_BOT_TOKEN=xoxb-xxx          # Slack bot token
+SLACK_SIGNING_SECRET=xxx          # Slack signing secret
+
+# Optional: Databases (auto-configured in docker-compose)
+DATABASE_URL=postgresql://user:pass@localhost:5432/devops
+REDIS_URL=redis://localhost:6379/0
+MONGODB_URL=mongodb://localhost:27017/devops
+
+# Optional: GitHub integration (for PR workflow)
+GITHUB_TOKEN=ghp_xxx              # GitHub personal access token
+GITHUB_REPO=your-org/your-repo    # Target repo for PRs
+
+# Optional: Cost alerts
+AWS_COST_ALERT_THRESHOLD=100      # Daily cost alert threshold (USD)
+BUDGET_ALERT_EMAIL=you@example.com
+
+# Optional: Agent tuning
+AGENT_EXECUTION_INTERVAL=300      # Seconds between agent runs (default: 5min)
+MAX_CONCURRENT_AGENTS=10          # Max parallel agent executions
 ```
 
-### 📊 Dashboard Components
+### Key Configuration Notes
 
-| Component | Purpose | Features |
-|-----------|---------|----------|
-| **Platform Overview** | Quick health status | Gauge visualization, color-coded thresholds |
-| **Agent Status** | AI agent monitoring | Individual status, success rates, execution times |
-| **Performance Trends** | System performance | Real-time charts, historical data |
-| **Cost Analysis** | Cloud cost monitoring | Current vs previous month, trends |
-| **Alerts & Anomalies** | Issue management | Real-time alerts, anomaly detection |
-| **Bot Activity** | Bot performance | Command rates, response times |
+**Minimum viable config** (local testing):
+- `OPENAI_API_KEY` only - everything else has defaults
 
-### 🎯 Dashboard Use Cases
+**Production config** requires:
+- Cloud credentials (AWS or GCP)
+- Bot tokens (Telegram or Slack)
+- GitHub token (for PR workflow)
+- Cost alert thresholds
 
-#### For DevOps Engineers
-- **Infrastructure Monitoring**: Track system health and performance
-- **Agent Management**: Monitor AI agent status and performance
-- **Cost Optimization**: Identify cost anomalies and optimization opportunities
-- **Alert Management**: Respond to critical issues quickly
-
-#### For Platform Administrators
-- **Capacity Planning**: Analyze resource utilization trends
-- **Performance Tuning**: Identify bottlenecks and optimization opportunities
-- **Security Monitoring**: Track security-related anomalies
-- **Compliance Reporting**: Generate performance and health reports
-
-#### For Business Stakeholders
-- **Cost Analysis**: Monitor cloud spending and trends
-- **Performance Overview**: High-level platform health status
-- **Anomaly Awareness**: Stay informed about critical issues
-- **ROI Tracking**: Monitor platform efficiency and value
+**Bot setup:**
+1. Create Telegram bot via [@BotFather](https://t.me/botfather)
+2. Get token and chat ID
+3. Add to `.env`
+4. Test: `/start` in Telegram
 
 ---
 
-## 💬 Interactive Bot Interface
+## 📊 Observability
 
-### Real-time Analysis & Monitoring
+### Metrics (Prometheus)
 
-| Command                    | Description                                    | Example Output                    |
-| -------------------------- | ---------------------------------------------- | --------------------------------- |
-| `/status`                  | Overall platform health                        | "🟢 All systems operational"     |
-| `/cost`                    | Detailed cost breakdown                        | "💰 Today: $12.45 (+15%)"        |
-| `/analysis`                | AI-powered infrastructure analysis             | "🤖 Detected 3 optimization opportunities" |
-| `/anomaly`                 | Anomaly detection report                       | "⚠️ CPU spike detected on api-2"  |
-| `/predict`                 | Traffic prediction for next 24h                | "📈 Expected 40% traffic increase" |
+**Exposed at:** http://localhost:9090
 
-### AI Agent Interactions
+**Key metrics:**
+- `agent_execution_duration_seconds` - Agent runtime
+- `agent_success_total` - Successful agent runs
+- `agent_failure_total` - Failed agent runs
+- `cost_optimization_savings_usd` - Money saved by CostWatcher
+- `anomaly_detection_count` - Anomalies detected
+- `pr_approval_latency_seconds` - Time to approve PRs
+- `infrastructure_cost_daily_usd` - Daily cloud spend
 
-| Command                    | Description                                    | Example Output                    |
-| -------------------------- | ---------------------------------------------- | --------------------------------- |
-| `/agent status`            | All agent health and status                    | "🧠 8/10 agents active"          |
-| `/agent <name> analyze`    | Run specific agent analysis                    | "🔍 BurstPredictor: Analyzing..." |
-| `/agent <name> optimize`   | Run agent optimization                         | "⚡ CostWatcher: Found $50 savings" |
-
-### Safety & Approval Workflow
-
-| Action/Event               | Bot Output Example                             |
-| -------------------------- | ---------------------------------------------- |
-| PR created by agent        | "🧠 Agent `BurstPredictor` opened PR: [#42](...) ➔ `/approve burst-pr-42`" |
-| CPU burst detected         | "🔥 CPU on `checkout-api` spiked to 91%. Scaling suggested." |
-| HPA anomaly                | "⚠️ HPA failed to scale during last burst. Propose: minReplicas=4 ➔ `/approve hpa-fix`" |
-| Cluster scale event        | "📦 New EC2 node added (ca). Load balanced across 3 AZs." |
-| Budget spike               | "💰 Cost +32% today. Top: RDS ($7.21), LB ($2.14). ➔ `/cost`" |
-| Security incident          | "🚨 Security incident detected. Agent `SecurityResponder` activated." |
-
-### 🔁 Available Bot Commands
-
-| Command            | Description                         |
-| ------------------ | ----------------------------------- |
-| `/status`          | Cluster + cost + HPA + agent status |
-| `/scale <svc> <n>` | Scale a K8s deployment manually     |
-| `/logs <pod>`      | Tail logs from any pod              |
-| `/approve <pr-id>` | Approve agent-generated PR          |
-| `/cost`            | Daily breakdown with top spenders   |
-| `/alerts`          | Show current Prometheus alerts      |
-| `/run test <svc>`  | Run synthetic test on a service     |
-| `/graph <panel>`   | Return rendered Grafana graph       |
+**Scrape targets:**
+- Application: http://devops-ai-platform:8000/metrics
+- Node exporter: http://node-exporter:9100/metrics
+- Kubernetes: http://kubernetes:443/metrics
 
 ---
 
-## 📊 Observability Stack
+### Dashboards (Grafana)
 
-* **Prometheus** – scraped from Kube metrics + apps
-* **Grafana** – dashboards for burst, CPU, autoscaling, cost
-* **Alertmanager** – routes alerts to bot via webhook
-* **k6** – HTTP synthetic tests run on schedule
+**Access at:** http://localhost:3001 (admin/admin)
 
-> Dashboard: `burst-scaling.json`  
-> Custom panels: CPU/pod, replicas, prediction, burst windows, bottlenecks
+**3 pre-built dashboards:**
+
+1. **DevOps AI Platform Overview**
+   - Platform health gauge
+   - Agent status grid
+   - Cost analysis charts
+   - Alert timeline
+
+2. **AI Agents Performance**
+   - Per-agent execution times
+   - Success/failure rates
+   - Resource utilization
+   - Anomaly detection heatmap
+
+3. **Infrastructure Monitoring**
+   - Kubernetes cluster metrics
+   - Node health and capacity
+   - Pod resource usage
+   - Network traffic
+
+**Dashboards location:** `monitoring/grafana/dashboards/`
 
 ---
 
-## 💰 Cost Optimization
+### Logs (Structured JSON)
 
-* RDS idle detector (automated shutdown suggestion)
-* EC2 spot recommendations (agents log alerts)
-* Budget alerts → Telegram
-* `/cost` command aggregates usage by resource + service
-* S3 lifecycle policies managed via Terraform
+**Log output:** `logs/platform.log` (volume-mounted in Docker)
 
----
+**Log format:**
+```json
+{
+  "timestamp": "2026-02-17T10:30:00Z",
+  "level": "INFO",
+  "agent": "CostWatcher",
+  "message": "Detected idle RDS instance",
+  "details": {
+    "instance_id": "db-prod-123",
+    "idle_days": 7,
+    "monthly_cost": 450.00,
+    "recommendation": "stop_or_downsize"
+  }
+}
+```
 
-## 🧱 Project Structure
+**Log levels:** DEBUG, INFO, WARN, ERROR, CRITICAL
 
+**Query logs:**
 ```bash
-devops-ai-platform/
-├── 📁 terraform/                    # Infrastructure as Code
-│   ├── main.tf                      # Main Terraform configuration
-│   └── variables.tf                 # Terraform variables
-│
-├── 🤖 agents/                       # MCP AI Agents
-│   ├── __init__.py                  # Agent package initialization
-│   ├── base.py                      # Base agent class
-│   ├── registry.py                  # Agent registry and management
-│   ├── burst_predictor.py           # Traffic prediction agent
-│   ├── cost_watcher.py              # Cost optimization agent
-│   ├── anomaly_detector.py          # Anomaly detection agent
-│   ├── auto_scaler_advisor.py       # HPA optimization agent
-│   ├── bottleneck_scanner.py        # Performance analysis agent
-│   ├── load_shifter.py              # Load distribution agent
-│   ├── security_responder.py        # Security incident response
-│   ├── capacity_planner.py          # Resource planning agent
-│   ├── patch_updater.py             # Security patch management
-│   ├── disk_cleaner.py              # Storage optimization
-│   ├── pod_restarter.py             # Pod health management
-│   └── db_maintainer.py             # Database maintenance automation
-│
-├── 💬 bots/                         # Bot Interface Layer
-│   ├── __init__.py                  # Bot package initialization
-│   ├── gateway.py                   # Bot gateway and routing
-│   ├── telegram_bot.py              # Telegram bot implementation
-│   └── slack_bot.py                 # Slack bot implementation
-│
-├── ☸️ k8s/                          # Kubernetes Manifests
-│   ├── base/                        # Kustomize base configuration
-│   │   ├── deployment.yaml          # Main application deployment
-│   │   ├── kustomization.yaml       # Kustomize configuration
-│   │   └── grafana-configmap.yaml   # Grafana configuration
-│   └── argocd/                      # ArgoCD Applications
-│       └── applications/            # Environment-specific applications
-│           ├── dev-application.yaml # Development environment
-│           └── prod-application.yaml # Production environment
-│
-├── 📊 monitoring/                   # Monitoring and Observability
-│   ├── grafana/                     # Grafana configuration
-│   │   ├── dashboards/              # Dashboard JSON files
-│   │   │   ├── devops-ai-platform-overview.json
-│   │   │   ├── agents-dashboard.json
-│   │   │   └── infrastructure-dashboard.json
-│   │   └── provisioning/            # Grafana provisioning
-│   │       ├── datasources/         # Data source configurations
-│   │       ├── dashboards/          # Dashboard provisioning
-│   │       ├── notifiers/           # Notification channels
-│   │       └── plugins/             # Plugin installations
-│   ├── prometheus.yml               # Prometheus configuration
-│   ├── alertmanager.yml             # AlertManager configuration
-│   └── README.md                    # Monitoring documentation
-│
-├── 🔧 scripts/                      # Utility Scripts
-│   ├── local-setup.sh               # Local development setup
-│   └── local-cleanup.sh             # Local environment cleanup
-│
-├── 🧪 tests/                        # Test Suite
-│   ├── __init__.py                  # Test package initialization
-│   ├── test_agents.py               # Agent unit tests
-│   └── test_bots.py                 # Bot interface tests
-│
-├── 🏗️ core/                         # Core Platform Components
-│   ├── __init__.py                  # Core package initialization
-│   ├── config.py                    # Configuration management
-│   ├── logging.py                   # Structured logging
-│   ├── database.py                  # Database connections
-│   ├── monitoring.py                # Metrics and monitoring
-│   └── scheduler.py                 # Task scheduling
-│
-├── 📄 Documentation                 # Project Documentation
-│   ├── README.md                    # Main project documentation
-│   ├── DEPLOYMENT.md                # Deployment guide
-│   └── IMPLEMENTATION_SUMMARY.md    # Implementation summary
-│
-├── 🔧 Configuration Files           # Configuration and Setup
-│   ├── config.env.example           # Environment variables template
-│   ├── requirements.txt             # Python dependencies
-│   ├── docker-compose.yml           # Local development setup
-│   ├── Dockerfile                   # Container image definition
-│   ├── setup.py                     # Platform setup script
-│   ├── atlantis.yaml                # Terraform automation
-│   └── .gitignore                   # Git ignore rules
-│
-└── 🚀 Application                   # Main Application
-    ├── main.py                      # FastAPI application entry point
-    └── init-db.sql                  # Database initialization
+# Docker Compose
+docker-compose logs -f devops-ai-platform
+
+# Kubernetes
+kubectl logs -f deployment/devops-ai-platform -n devops-ai-platform
 ```
 
 ---
 
-## 🔁 Full Lifecycle Example: Traffic Burst
+### Alerts (AlertManager)
 
-1. **BurstPredictor** detects weekly spike pattern → opens PR
-2. Bot sends message:  
-   “📈 Traffic spike expected Mon 10–11. PR created → `/approve burst-pr-55`”
-3. You approve.  
-   HPA minReplicas increased from 2 → 4
-4. Load hits. Cluster autoscaler adds node.  
-5. Grafana panel shows burst → scale-out → recovery
-6. Alertmanager confirms "response time OK". ✅
+**Access at:** http://localhost:9093
 
----
+**Alert rules configured:**
+- Agent failure rate > 20%
+- Cost spike > $100/day
+- API response time > 2s
+- Database connection errors
+- High memory usage (>90%)
 
-## 🔁 Full Lifecycle Example: Traffic Burst
+**Alert routing:**
+- Critical → Telegram + Slack + Email
+- Warning → Slack only
+- Info → Log only
 
-1. **BurstPredictor** detects weekly spike pattern → opens PR
-2. Bot sends message:  
-   "📈 Traffic spike expected Mon 10–11. PR created → `/approve burst-pr-55`"
-3. You approve.  
-   HPA minReplicas increased from 2 → 4
-4. Load hits. Cluster autoscaler adds node.  
-5. Grafana panel shows burst → scale-out → recovery
-6. Alertmanager confirms "response time OK". ✅
+**Config:** `monitoring/alertmanager.yml`
 
 ---
 
-## 🛡️ Safety & Governance Framework
+## 🗺️ Roadmap
 
-### Man-in-the-Loop Safety
-- **PR-Based Changes**: All infrastructure modifications require GitHub PR approval
-- **Risk Assessment**: AI agents analyze potential impact before proposing changes
-- **Rollback Triggers**: Automatic rollback on performance degradation or cost spikes
-- **Audit Trail**: Complete logging of all decisions, approvals, and actions
-- **Multi-Layer Validation**: Multiple safety checks before execution
+### ✅ Phase 1: Foundation (Complete)
+- [x] 12 MCP agents implemented and tested
+- [x] Bot gateway (Telegram/Slack) with approval workflow
+- [x] Local development environment (kind cluster)
+- [x] Docker Compose for rapid testing
+- [x] Complete observability stack (Prometheus/Grafana)
+- [x] Terraform infrastructure for AWS EKS
 
-### Approval Workflow
-1. **Agent Analysis**: MCP agent detects issue or opportunity
-2. **Risk Assessment**: AI evaluates potential impact and risks
-3. **PR Creation**: Change proposed via GitHub PR with detailed explanation
-4. **Bot Notification**: Telegram/Slack bot notifies with approval command
-5. **Human Review**: You review and approve/reject via bot command
-6. **Execution**: Approved changes are deployed automatically
-7. **Monitoring**: Continuous monitoring for any issues
+### 🔄 Phase 2: Production Hardening (In Progress)
+- [ ] SSL/TLS configuration with Let's Encrypt
+- [ ] Automated backup and disaster recovery
+- [ ] Performance optimization and load testing
+- [ ] Multi-AZ high availability setup
+- [ ] Advanced cost optimization algorithms
+- [ ] Security scanning integration (Trivy, Falco)
 
----
+### 📋 Phase 3: Advanced AI Features (Q2 2026)
+- [ ] Deep learning models for pattern recognition
+- [ ] Predictive maintenance (MTBF forecasting)
+- [ ] Auto-remediation without human approval (for low-risk tasks)
+- [ ] Multi-cluster management and cross-cloud orchestration
+- [ ] Natural language query interface ("Show me expensive pods")
 
-## 🚀 Development & Contribution
-
-### Getting Started for Developers
-
-1. **Setup Development Environment**
-   ```bash
-   git clone https://github.com/your-org/devops-ai-platform.git
-   cd devops-ai-platform
-   python -m venv venv
-   source venv/bin/activate  # or `venv\Scripts\activate` on Windows
-   pip install -r requirements.txt
-   ```
-
-2. **Configure Local Development**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your development credentials
-   ```
-
-3. **Run Tests**
-   ```bash
-   pytest tests/
-   ```
-
-### Adding New AI Agents
-
-1. **Create Agent Structure**
-   ```bash
-   mkdir agents/new-agent
-   cd agents/new-agent
-   ```
-
-2. **Implement MCP Interface**
-   ```python
-   # agents/new-agent/agent.py
-   from mcp import Agent
-   
-   class NewAgent(Agent):
-       def analyze(self, context):
-           # Your analysis logic
-           pass
-       
-       def optimize(self, context):
-           # Your optimization logic
-           pass
-   ```
-
-3. **Add to Bot Interface**
-   ```python
-   # bots/shared/agent_registry.py
-   from agents.new_agent import NewAgent
-   
-   AGENT_REGISTRY = {
-       "new-agent": NewAgent(),
-       # ... other agents
-   }
-   ```
-
-### Contributing Guidelines
-
-- **Code Quality**: Follow PEP 8, add type hints, write comprehensive tests
-- **Documentation**: Update README and add docstrings for new features
-- **Testing**: Add unit tests for new agents and integration tests for workflows
-- **Security**: Follow security best practices and add security reviews
-- **Performance**: Monitor and optimize agent performance
+### 🚀 Phase 4: Multi-Cloud & Enterprise (Q3 2026)
+- [ ] Full GCP support (GKE, Cloud Run, BigQuery)
+- [ ] Azure support (AKS, App Service)
+- [ ] Multi-tenant architecture with RBAC
+- [ ] SSO integration (Okta, Auth0)
+- [ ] Advanced compliance reporting (SOC2, GDPR, HIPAA)
+- [ ] Marketplace distribution (AWS Marketplace, GCP Marketplace)
 
 ---
 
-## 📚 System Design & Architecture
+## 📄 License
 
-See `docs/system-design/` for detailed architecture documents:
+MIT License - See [LICENSE](LICENSE) file
 
-- **AI Agent Architecture**: MCP implementation and agent communication
-- **Bot Interface Design**: Telegram/Slack integration patterns
-- **Safety Framework**: Man-in-the-loop implementation details
-- **Multi-Cloud Strategy**: AWS/GCP compatibility design
-- **Performance Optimization**: Scaling and performance considerations
-- **Security Architecture**: Security patterns and compliance
-- **Cost Optimization**: Cost management strategies and implementation
+Copyright (c) 2026 Litan Shamir
 
 ---
 
-## 📌 License
+## ⚠️ Disclaimer
 
-MIT — use freely for practice, startups, MVPs, or consulting assets.
+**Production Use:** This platform is in active development. While the core functionality is production-ready, we recommend:
+- Testing thoroughly in dev/staging environments first
+- Starting with manual approval for all agent actions
+- Gradually increasing automation as you build confidence
+- Monitoring costs closely during initial deployment
+
+**Security:**
+- Always use secrets management (AWS Secrets Manager, HashiCorp Vault)
+- Never commit `.env` files with real credentials
+- Rotate API keys and tokens regularly
+- Review all agent-generated PRs before approval
+
+**Cost:**
+- AWS Free Tier covers local testing and small workloads
+- Production EKS clusters typically cost $50-200/month depending on size
+- Monitor `AWS_COST_ALERT_THRESHOLD` to prevent runaway spending
+
+**Support:**
+- Open issues on GitHub for bugs or questions
+- See `docs/design.md` for architectural decisions
+- Pull requests welcome following contribution guidelines
 
 ---
 
-## 🤝 Support & Community
+## 📚 Additional Documentation
 
-- **Issues**: Report bugs and feature requests via GitHub Issues
-- **Discussions**: Join community discussions for questions and ideas
-- **Contributing**: See CONTRIBUTING.md for detailed contribution guidelines
-- **Documentation**: Comprehensive docs available in `docs/` directory
+- [DEPLOYMENT.md](DEPLOYMENT.md) - Production deployment guide
+- [DASHBOARD_GUIDE.md](DASHBOARD_GUIDE.md) - React dashboard setup
+- [docs/design.md](docs/design.md) - Architecture and design decisions
+- [CONTRIBUTING.md](../CONTRIBUTING.md) - Contribution guidelines
 
 ---
+
+**Built with:** Python 3.9+ | FastAPI | Kubernetes | Terraform | OpenAI | Prometheus | Grafana | AWS
